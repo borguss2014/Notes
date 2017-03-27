@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="1"
+    tools:context="com.example.root.notes.NoteActivity"
+    tools:layout_editor_absoluteX="0dp"
+    tools:layout_editor_absoluteY="81dp">
+
+    <EditText
+        android:id="@+id/note_et_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/note_activity_title_hint"
+        android:inputType="text|textPersonName"
+        android:maxLength="30"
+        android:maxLines="1" />
+
+    <com.example.root.notes.DottedLineEditText
+        android:id="@+id/note_et_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:ems="10"
+        android:gravity="top"
+        android:hint="@string/note_activity_content_hint"
+        android:inputType="textMultiLine" />
+</LinearLayout>
