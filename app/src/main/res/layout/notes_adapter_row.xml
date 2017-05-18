@@ -16,6 +16,15 @@
 
 
         <TextView
+            android:id="@+id/adapter_notes_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingStart="10dp"
+            tools:text="Date" />
+
+        <TextView
             android:id="@+id/adapter_notes_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -29,26 +38,17 @@
             android:visibility="visible"
             tools:text="Title" />
 
-        <LinearLayout
-            android:id="@+id/adapter_notes_content_layout"
+        <TextView
+            android:id="@+id/adapter_notes_content"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/adapter_notes_content"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:paddingBottom="5dp"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textColor="@color/colorPrimaryDark"
-                android:visibility="visible"
-                tools:text="preview" />
-
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:paddingBottom="5dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/colorPrimaryDark"
+            android:visibility="visible"
+            tools:text="preview" />
 
     </LinearLayout>
 

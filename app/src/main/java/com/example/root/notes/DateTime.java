@@ -48,6 +48,14 @@ public class DateTime implements Serializable{
         this.mSeconds = mSeconds;
     }
 
+    public boolean isSet()
+    {
+        if(mHour == -1 && mMinute == -1 && mSeconds == -1)
+        {
+            return false;
+        }
+        return true;
+    }
     @Override
     public String toString() {
         return "DateTime{" +

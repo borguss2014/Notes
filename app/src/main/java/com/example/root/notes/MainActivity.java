@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getWindow().getDecorView().setBackgroundColor(Color.LTGRAY);
+        getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
         mListNotes = (ListView) findViewById(R.id.main_notes_list_view);
         selectedItems = new ArrayList<>();

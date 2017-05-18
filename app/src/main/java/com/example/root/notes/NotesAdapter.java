@@ -27,6 +27,8 @@ class ViewHolder
 {
     TextView title;
     TextView content;
+    TextView date;
+
     LinearLayout titleContentLayout;
     LinearLayout contentLayout;
     LinearLayout photoLayout;
@@ -56,7 +58,8 @@ class NotesAdapter extends ArrayAdapter<Note>{
 
         holder.title = (TextView) convertView.findViewById(R.id.adapter_notes_title);
         holder.content = (TextView) convertView.findViewById(R.id.adapter_notes_content);
-        holder.contentLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_content_layout);
+        holder.date = (TextView) convertView.findViewById(R.id.adapter_notes_date);
+
         holder.titleContentLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_title_content_layout);
         holder.photoLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_photo_layout);
         holder.parentLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_parent_layout);
@@ -74,6 +77,36 @@ class NotesAdapter extends ArrayAdapter<Note>{
                 holder.content.setText(note.getContent().substring(0, WRAP_CONTENT_LENGTH) + "...");
             } else {
                 holder.content.setText(note.getContent());
+            }
+
+
+            if(!note.getLastModifiedDate().isSet())
+            {
+                int hour, minute, second;
+                hour = note.getCreationDate().getHour();
+                minute = note.getCreationDate().getMinute();
+                second = note.getCreationDate().getSeconds();
+
+                String creationTime = Integer.toString(hour) + ":"
+                        + Integer.toString(minute) + ":"
+                        + Integer.toString(second);
+
+                holder.date.setText(creationTime);
+                holder.date.setTextColor(Color.GREEN);
+            }
+            else
+            {
+                int hour, minute, second;
+                hour = note.getLastModifiedDate().getHour();
+                minute = note.getLastModifiedDate().getMinute();
+                second = note.getLastModifiedDate().getSeconds();
+
+                String modifiedTime = "Modified: " + Integer.toString(hour) + ":"
+                        + Integer.toString(minute) + ":"
+                        + Integer.toString(second);
+
+                holder.date.setText(modifiedTime);
+                holder.date.setTextColor(Color.GREEN);
             }
         }
 
