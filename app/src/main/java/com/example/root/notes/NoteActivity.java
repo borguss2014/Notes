@@ -77,8 +77,9 @@ public class NoteActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.d("OnTextChanged", "Text changed title");
 
-                if(mNewNote == false) { //If it's not a new note
-                    if (notesComparison(mReceivedNote, new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString()))) {
+                if(!mNewNote) { //If it's not a new note
+                    Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
+                    if (notesComparison(mReceivedNote, currentContent)) {
                         //Note altered
                         mNoteAltered = true;
                         invalidateOptionsMenu();
@@ -102,8 +103,9 @@ public class NoteActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.d("OnTextChanged", "Text changed content");
 
-                if(mNewNote == false) { //If it's not a new note
-                    if (notesComparison(mReceivedNote, new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString()))) {
+                if(!mNewNote) { //If it's not a new note
+                    Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
+                    if (notesComparison(mReceivedNote, currentContent)) {
                         //Note altered
                         mNoteAltered = true;
                         invalidateOptionsMenu();
@@ -124,7 +126,6 @@ public class NoteActivity extends AppCompatActivity {
         if(mNewNote)
         {
             inflater.inflate(R.menu.activity_notes_new_note_menu, menu);
-            mNoteAltered = true;
         }
         else
         {
@@ -192,12 +193,12 @@ public class NoteActivity extends AppCompatActivity {
                 boolean fileDeleted = deleteNote(mReceivedNote);
                 if(fileDeleted)
                 {
-                    Toast.makeText(getApplicationContext(), "Note succesfully deleted" , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Note successfully deleted" , Toast.LENGTH_SHORT).show();
                     return true;
                 }
                 else
                 {
-                    Toast.makeText(getApplicationContext(), "An error occured. Note couldn't be deleted" , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "An error occurred. Note couldn't be deleted" , Toast.LENGTH_SHORT).show();
                     return false;
                 }
             }
@@ -211,14 +212,21 @@ public class NoteActivity extends AppCompatActivity {
 
         MenuItem item = menu.findItem(R.id.action_notes_save_note);
 
-        if(mNoteAltered)
+        if(mNewNote)
         {
-            //Allow user to save the modified note
             item.setEnabled(true);
         }
         else
         {
-            item.setEnabled(false);
+            if(mNoteAltered)
+            {
+                //Allow user to save the modified note
+                item.setEnabled(true);
+            }
+            else
+            {
+                item.setEnabled(false);
+            }
         }
 
         return super.onPrepareOptionsMenu(menu);
