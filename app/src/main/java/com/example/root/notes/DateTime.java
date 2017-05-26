@@ -11,17 +11,19 @@ public class DateTime implements Serializable{
     private int mMinute;
     private int mSeconds;
 
+    private int mDay;
+    private int mMonth;
+    private int mYear;
+
     public DateTime()
     {
         this.mHour      = -1;
         this.mMinute    = -1;
         this.mSeconds   = -1;
-    }
 
-    public DateTime(int mHour, int mMinute, int mSeconds) {
-        this.mHour      = mHour;
-        this.mMinute    = mMinute;
-        this.mSeconds   = mSeconds;
+        this.mDay       = -1;
+        this.mMonth     = -1;
+        this.mYear      = -1;
     }
 
     public int getHour() {
@@ -48,7 +50,40 @@ public class DateTime implements Serializable{
         this.mSeconds = mSeconds;
     }
 
-    public boolean isSet()
+    public int getDay() {
+        return mDay;
+    }
+
+    public void setDay(int day) {
+        this.mDay = day;
+    }
+
+    public int getMonth() {
+        return mMonth;
+    }
+
+    public void setMonth(int month) {
+        this.mMonth = month;
+    }
+
+    public int getYear() {
+        return mYear;
+    }
+
+    public void setYear(int year) {
+        this.mYear = year;
+    }
+
+    public boolean isDateSet()
+    {
+        if(mDay == -1 && mMonth == -1 && mYear == -1)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isTimeSet()
     {
         if(mHour == -1 && mMinute == -1 && mSeconds == -1)
         {
@@ -56,6 +91,17 @@ public class DateTime implements Serializable{
         }
         return true;
     }
+
+    public String getDate()
+    {
+        return mDay + "/" + mMonth + "/" + mYear;
+    }
+
+    public String getTime()
+    {
+        return mHour + ":" + mMinute + ":" + mSeconds;
+    }
+
     @Override
     public String toString() {
         return "DateTime{" +

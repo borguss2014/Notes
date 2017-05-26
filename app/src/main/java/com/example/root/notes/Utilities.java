@@ -166,31 +166,34 @@ public class Utilities {
 
     public static DateTime getCurrentDateTime()
     {
-        // get the supported ids for GMT-08:00 (Pacific Standard Time)
-        String[] ids = TimeZone.getAvailableIDs(-8 * 60 * 60 * 1000);
-        // if no ids were returned, something is wrong. get out.
-        if (ids.length == 0)
-            System.exit(0);
 
-        // begin output
-        System.out.println("Current Time");
-
-        // create a Pacific Standard Time time zone
-        SimpleTimeZone pdt = new SimpleTimeZone(-8 * 60 * 60 * 1000, ids[0]);
-
-        // set up rules for Daylight Saving Time
-        pdt.setStartRule(Calendar.APRIL, 1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
-        pdt.setEndRule(Calendar.OCTOBER, -1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
+//
+//        // get the supported ids for GMT-08:00 (Pacific Standard Time)
+//        String[] ids = TimeZone.getAvailableIDs(-8 * 60 * 60 * 1000);
+//        // if no ids were returned, something is wrong. get out.
+//        if (ids.length == 0)
+//            System.exit(0);
+//
+//        // begin output
+//        System.out.println("Current Time");
+//
+//        // create a Pacific Standard Time time zone
+//        SimpleTimeZone pdt = new SimpleTimeZone(-8 * 60 * 60 * 1000, ids[0]);
+//
+//        // set up rules for Daylight Saving Time
+//        pdt.setStartRule(Calendar.APRIL, 1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
+//        pdt.setEndRule(Calendar.OCTOBER, -1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
 
         // create a GregorianCalendar with the Pacific Daylight time zone
         // and the current date and time
-        Calendar calendar = new GregorianCalendar(pdt);
+        Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
         Date trialTime = new Date();
         calendar.setTime(trialTime);
 
-        DateTime date = new DateTime(calendar.get(Calendar.HOUR_OF_DAY),
-                calendar.get(Calendar.MINUTE),
-                calendar.get(Calendar.SECOND));
+        DateTime date = new DateTime();
+        date.setSeconds(calendar.get(Calendar.SECOND));
+        date.setMinute(calendar.get(Calendar.MINUTE));
+        date.setHour(calendar.get(Calendar.HOUR_OF_DAY));
 
         return date;
     }

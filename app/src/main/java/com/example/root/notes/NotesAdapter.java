@@ -80,7 +80,7 @@ class NotesAdapter extends ArrayAdapter<Note>{
             }
 
 
-            if(!note.getLastModifiedDate().isSet())
+            if(!note.getLastModifiedDate().isTimeSet())
             {
                 int hour, minute, second;
                 hour = note.getCreationDate().getHour();
