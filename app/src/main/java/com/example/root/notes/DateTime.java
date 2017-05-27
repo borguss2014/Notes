@@ -94,7 +94,7 @@ public class DateTime implements Serializable{
 
     public String getDate()
     {
-        return mDay + "/" + mMonth + "/" + mYear;
+        return mMonth + "/" + mDay + "/" + mYear;
     }
 
     public String getTime()
@@ -102,12 +102,17 @@ public class DateTime implements Serializable{
         return mHour + ":" + mMinute + ":" + mSeconds;
     }
 
+    public String getDateTime()
+    {
+        return mMonth + "/" + mDay + "/" + mYear + " " +
+                mHour + ":" + mMinute + ":" + mSeconds;
+    }
+
     @Override
     public String toString() {
         return "DateTime{" +
-                "mHour=" + mHour +
-                ", mMinute=" + mMinute +
-                ", mSeconds=" + mSeconds +
-                '}';
+                "[Hour=" + mHour + ", Minutes=" + mMinute + ", Seconds=" + mSeconds + "]," +
+                "[Month=" + mMonth + ", Days=" + mDay + ", Year=" + mYear + "]" +
+                "}";
     }
 }

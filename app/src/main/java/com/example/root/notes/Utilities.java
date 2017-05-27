@@ -3,6 +3,7 @@ package com.example.root.notes;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.IntDef;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -13,6 +14,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -40,11 +45,22 @@ public class Utilities {
 
     public static String DEBUG     = "DEBUG";
 
+    public static final int DATE_BEFORE = 1000;
+    public static final int DATE_EQUAL  = 1001;
+    public static final int DATE_AFTER  = 1002;
+    public static final int DATE_COMPARE_ERROR  = -1;
+
+    @IntDef({DATE_BEFORE, DATE_EQUAL, DATE_AFTER})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface DateEquality {
+    }
 
     @TargetApi(Build.VERSION_CODES.N)
     public static boolean saveFile(Context context, Note note, boolean overwrite)
     {
-        String fileName = "";
+        String fileName;
+
+        DateTime date = getCurrentDateTime();
 
         if(overwrite)
         {
@@ -54,31 +70,33 @@ public class Utilities {
             {
                 if(file.getName().equals(note.getFileName()))
                 {
-                    Log.d("FILENAME CHECK", "FOUND FILE, DELETING...");
-                    file.delete();
+                    if(file.delete())
+                    {
+                        Log.d("FILENAME CHECK", "FILE " + note.getFileName() + "SUCCESSFULLY DELETED");
+                    }
+                    else
+                    {
+                        Log.d("FILENAME CHECK", "ERROR: COULDN'T DELETE FILE");
+                    }
                     break;
                 }
             }
 
             fileName = note.getFileName();
 
-            DateTime date = getCurrentDateTime();
             note.setLastModifiedDate(date);
         }
         else
         {
             fileName = String.valueOf(note.getDate()) + EXTENSION;
-            note.setFileName(fileName);
 
-            DateTime date = getCurrentDateTime();
+            note.setFileName(fileName);
             note.setCreationDate(date);
         }
 
-//        DateTime date = getCurrentDateTime();
-//        note.setCreationDate(date);
 
-        FileOutputStream fos = null;
-        ObjectOutputStream oos = null;
+        FileOutputStream fos;
+        ObjectOutputStream oos;
 
         try {
             fos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
@@ -166,7 +184,6 @@ public class Utilities {
 
     public static DateTime getCurrentDateTime()
     {
-
 //
 //        // get the supported ids for GMT-08:00 (Pacific Standard Time)
 //        String[] ids = TimeZone.getAvailableIDs(-8 * 60 * 60 * 1000);
@@ -187,15 +204,53 @@ public class Utilities {
         // create a GregorianCalendar with the Pacific Daylight time zone
         // and the current date and time
         Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
-        Date trialTime = new Date();
-        calendar.setTime(trialTime);
+        Date date = new Date();
+        calendar.setTime(date);
 
-        DateTime date = new DateTime();
-        date.setSeconds(calendar.get(Calendar.SECOND));
-        date.setMinute(calendar.get(Calendar.MINUTE));
-        date.setHour(calendar.get(Calendar.HOUR_OF_DAY));
+        DateTime dateTime = new DateTime();
+        dateTime.setSeconds(calendar.get(Calendar.SECOND));
+        dateTime.setMinute(calendar.get(Calendar.MINUTE));
+        dateTime.setHour(calendar.get(Calendar.HOUR_OF_DAY));
 
-        return date;
+        dateTime.setDay(calendar.get(Calendar.DAY_OF_MONTH));
+        dateTime.setMonth(calendar.get(Calendar.MONTH) + 1);
+        dateTime.setYear(calendar.get(Calendar.YEAR));
+
+        return dateTime;
+    }
+
+    public static @DateEquality int compareDates(String d1,String d2)
+    {
+        @DateEquality int dateEquality = DATE_COMPARE_ERROR;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+
+        Date date1 = null;
+        Date date2 = null;
+
+        try
+        {
+            date1 = sdf.parse(d1);
+            date2 = sdf.parse(d2);
+        }
+        catch (ParseException e)
+        {
+            e.printStackTrace();
+        }
+
+        if (date1 != null && date2 != null) {
+            if(date1.after(date2)){
+                dateEquality = DATE_AFTER;
+            }
+            else if(date1.before(date2)){
+                dateEquality = DATE_BEFORE;
+            }
+            else if(date1.equals(date2)){
+                dateEquality = DATE_EQUAL;
+            }
+        }
+
+        return dateEquality;
     }
 
 }

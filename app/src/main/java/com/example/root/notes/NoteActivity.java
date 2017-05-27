@@ -77,7 +77,7 @@ public class NoteActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.d("OnTextChanged", "Text changed title");
 
-                if(!mNewNote) { //If it's not a new note
+                if(!mNewNote) {
                     Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
                     if (notesComparison(mReceivedNote, currentContent)) {
                         //Note altered

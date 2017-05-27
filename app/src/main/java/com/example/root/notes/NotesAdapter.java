@@ -80,34 +80,80 @@ class NotesAdapter extends ArrayAdapter<Note>{
             }
 
 
-            if(!note.getLastModifiedDate().isTimeSet())
+            int creationDay, creationMonth, creationYear,
+            creationHour, creationMinute, creationSecond;
+
+            int modificationDay, modificationMonth, modificationYear,
+                    modificationHour, modificationMinute, modificationSecond;
+
+            int currentDay, currentMonth, currentYear,
+            currentHour, currentMinute, currentSecond;
+
+            String date = "DATE PLACEHOLDER";
+
+            DateTime currentDate = Utilities.getCurrentDateTime();
+            currentDay = currentDate.getDay();
+            currentMonth = currentDate.getMonth();
+            currentYear = currentDate.getYear();
+
+            currentHour = currentDate.getHour();
+            currentMinute = currentDate.getMinute();
+            currentSecond = currentDate.getSeconds();
+
+            if(!note.getLastModifiedDate().isDateSet())
             {
-                int hour, minute, second;
-                hour = note.getCreationDate().getHour();
-                minute = note.getCreationDate().getMinute();
-                second = note.getCreationDate().getSeconds();
+                creationDay = note.getCreationDate().getDay();
+                creationMonth = note.getCreationDate().getMonth();
+                creationYear = note.getCreationDate().getYear();
 
-                String creationTime = Integer.toString(hour) + ":"
-                        + Integer.toString(minute) + ":"
-                        + Integer.toString(second);
+                creationHour = note.getCreationDate().getHour();
+                creationMinute = note.getCreationDate().getMinute();
+                creationSecond = note.getCreationDate().getSeconds();
 
-                holder.date.setText(creationTime);
-                holder.date.setTextColor(Color.GREEN);
+                if((currentSecond - creationSecond) < 60 && currentMinute == creationMinute)
+                {
+                    date = "Created seconds ago";
+                }
+                else if(currentMinute > creationMinute && currentHour == creationHour)
+                {
+                    int time = currentMinute - creationMinute;
+                    date = "Created " + Integer.toString(time) + " minutes ago";
+                }
+                else if(currentHour > creationHour && currentDay == creationDay)
+                {
+                    int time = currentHour - creationHour;
+                    date = "Created " + Integer.toString(time) + " hours ago";
+                }
+                else if(currentDay > creationDay && currentMonth == creationMonth)
+                {
+                    int time = currentDay - creationDay;
+                    date = "Created " + Integer.toString(time) + " days ago";
+                }
+                else if(currentMonth > creationMonth)
+                {
+                    date = Integer.toString(creationMonth) + ":"
+                            + Integer.toString(creationDay) + ":"
+                            + Integer.toString(creationYear);
+                }
             }
+            //TODO : DYNAMIC MODIFICATION DATE/TIME
             else
             {
-                int hour, minute, second;
-                hour = note.getLastModifiedDate().getHour();
-                minute = note.getLastModifiedDate().getMinute();
-                second = note.getLastModifiedDate().getSeconds();
+                modificationDay = note.getLastModifiedDate().getDay();
+                modificationMonth = note.getLastModifiedDate().getMonth();
+                modificationYear = note.getLastModifiedDate().getYear();
 
-                String modifiedTime = "Modified: " + Integer.toString(hour) + ":"
-                        + Integer.toString(minute) + ":"
-                        + Integer.toString(second);
+                modificationHour = note.getLastModifiedDate().getHour();
+                modificationMinute = note.getLastModifiedDate().getMinute();
+                modificationSecond = note.getLastModifiedDate().getSeconds();
 
-                holder.date.setText(modifiedTime);
-                holder.date.setTextColor(Color.GREEN);
+                date = "Modified: " + Integer.toString(modificationMonth) + ":"
+                        + Integer.toString(modificationDay) + ":"
+                        + Integer.toString(modificationYear);
             }
+
+            holder.date.setText(date);
+            holder.date.setTextColor(Color.GREEN);
         }
 
         if(MainActivity.selectModeStatus())
