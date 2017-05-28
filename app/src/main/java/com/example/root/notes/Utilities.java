@@ -219,38 +219,49 @@ public class Utilities {
         return dateTime;
     }
 
-    public static @DateEquality int compareDates(String d1,String d2)
+    public static ElapsedTime elapsedTime(String d1,String d2)
     {
-        @DateEquality int dateEquality = DATE_COMPARE_ERROR;
-
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
-        Date date1 = null;
-        Date date2 = null;
+        long secondsInMilli = 1000;
+        long minutesInMilli = secondsInMilli * 60;
+        long hoursInMilli = minutesInMilli * 60;
+        long daysInMilli = hoursInMilli * 24;
+
+        long difference = 0;
+
+        Date startDate = null;
+        Date endDate = null;
 
         try
         {
-            date1 = sdf.parse(d1);
-            date2 = sdf.parse(d2);
+            startDate = sdf.parse(d1);
+            endDate = sdf.parse(d2);
         }
         catch (ParseException e)
         {
             e.printStackTrace();
         }
 
-        if (date1 != null && date2 != null) {
-            if(date1.after(date2)){
-                dateEquality = DATE_AFTER;
-            }
-            else if(date1.before(date2)){
-                dateEquality = DATE_BEFORE;
-            }
-            else if(date1.equals(date2)){
-                dateEquality = DATE_EQUAL;
-            }
+
+        if (endDate != null && startDate != null) {
+            difference = endDate.getTime() - startDate.getTime();
         }
 
-        return dateEquality;
+
+        long elapsedDays = difference / daysInMilli;
+        difference = difference % daysInMilli;
+
+        long elapsedHours = difference / hoursInMilli;
+        difference = difference % hoursInMilli;
+
+        long elapsedMinutes = difference / minutesInMilli;
+        difference = difference % minutesInMilli;
+
+        long elapsedSeconds = difference / secondsInMilli;
+
+        return new ElapsedTime(elapsedDays, elapsedHours,
+                elapsedMinutes, elapsedSeconds);
     }
 
 }

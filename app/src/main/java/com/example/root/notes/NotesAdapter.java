@@ -79,77 +79,64 @@ class NotesAdapter extends ArrayAdapter<Note>{
                 holder.content.setText(note.getContent());
             }
 
-
-            int creationDay, creationMonth, creationYear,
-            creationHour, creationMinute, creationSecond;
-
-            int modificationDay, modificationMonth, modificationYear,
-                    modificationHour, modificationMinute, modificationSecond;
-
-            int currentDay, currentMonth, currentYear,
-            currentHour, currentMinute, currentSecond;
-
             String date = "DATE PLACEHOLDER";
 
             DateTime currentDate = Utilities.getCurrentDateTime();
-            currentDay = currentDate.getDay();
-            currentMonth = currentDate.getMonth();
-            currentYear = currentDate.getYear();
-
-            currentHour = currentDate.getHour();
-            currentMinute = currentDate.getMinute();
-            currentSecond = currentDate.getSeconds();
+            DateTime creationDate = note.getCreationDate();
+            DateTime modificationDate = note.getLastModifiedDate();
 
             if(!note.getLastModifiedDate().isDateSet())
             {
-                creationDay = note.getCreationDate().getDay();
-                creationMonth = note.getCreationDate().getMonth();
-                creationYear = note.getCreationDate().getYear();
 
-                creationHour = note.getCreationDate().getHour();
-                creationMinute = note.getCreationDate().getMinute();
-                creationSecond = note.getCreationDate().getSeconds();
+                ElapsedTime elapsed = Utilities.elapsedTime(creationDate.getDateTime(), currentDate.getDateTime());
 
-                if((currentSecond - creationSecond) < 60 && currentMinute == creationMinute)
+                if(elapsed.getElapsedSeconds() < 60 &&
+                        elapsed.getElapsedMinutes() == 0 &&
+                        elapsed.getElapsedHours() == 0 &&
+                        elapsed.getElapsedDays() == 0)
                 {
                     date = "Created seconds ago";
                 }
-                else if(currentMinute > creationMinute && currentHour == creationHour)
+                else if(elapsed.getElapsedMinutes() < 60 && elapsed.getElapsedHours() == 0 && elapsed.getElapsedDays() == 0)
                 {
-                    int time = currentMinute - creationMinute;
-                    date = "Created " + Integer.toString(time) + " minutes ago";
+                    date = "Created " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
                 }
-                else if(currentHour > creationHour && currentDay == creationDay)
+                else if(elapsed.getElapsedHours() < 24 && elapsed.getElapsedDays() == 0)
                 {
-                    int time = currentHour - creationHour;
-                    date = "Created " + Integer.toString(time) + " hours ago";
+                    date = "Created " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
                 }
-                else if(currentDay > creationDay && currentMonth == creationMonth)
+                else if(elapsed.getElapsedDays() > 0)
                 {
-                    int time = currentDay - creationDay;
-                    date = "Created " + Integer.toString(time) + " days ago";
-                }
-                else if(currentMonth > creationMonth)
-                {
-                    date = Integer.toString(creationMonth) + ":"
-                            + Integer.toString(creationDay) + ":"
-                            + Integer.toString(creationYear);
+                    date = Integer.toString(creationDate.getMonth()) + "/"
+                            + Integer.toString(creationDate.getDay()) + "/"
+                            + Integer.toString(creationDate.getYear());
                 }
             }
-            //TODO : DYNAMIC MODIFICATION DATE/TIME
             else
             {
-                modificationDay = note.getLastModifiedDate().getDay();
-                modificationMonth = note.getLastModifiedDate().getMonth();
-                modificationYear = note.getLastModifiedDate().getYear();
+                ElapsedTime elapsed = Utilities.elapsedTime(modificationDate.getDateTime(), currentDate.getDateTime());
 
-                modificationHour = note.getLastModifiedDate().getHour();
-                modificationMinute = note.getLastModifiedDate().getMinute();
-                modificationSecond = note.getLastModifiedDate().getSeconds();
-
-                date = "Modified: " + Integer.toString(modificationMonth) + ":"
-                        + Integer.toString(modificationDay) + ":"
-                        + Integer.toString(modificationYear);
+                if(elapsed.getElapsedSeconds() < 60 &&
+                        elapsed.getElapsedMinutes() == 0 &&
+                        elapsed.getElapsedHours() == 0 &&
+                        elapsed.getElapsedDays() == 0)
+                {
+                    date = "Modified seconds ago";
+                }
+                else if(elapsed.getElapsedMinutes() < 60 && elapsed.getElapsedHours() == 0 && elapsed.getElapsedDays() == 0)
+                {
+                    date = "Modified " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
+                }
+                else if(elapsed.getElapsedHours() < 24 && elapsed.getElapsedDays() == 0)
+                {
+                    date = "Modified " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
+                }
+                else if(elapsed.getElapsedDays() > 0)
+                {
+                    date = "Modified: " + Integer.toString(modificationDate.getMonth()) + "/"
+                            + Integer.toString(modificationDate.getDay()) + "/"
+                            + Integer.toString(modificationDate.getYear());
+                }
             }
 
             holder.date.setText(date);
