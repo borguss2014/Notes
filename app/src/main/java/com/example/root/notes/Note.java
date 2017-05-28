@@ -3,7 +3,6 @@ package com.example.root.notes;
 import android.util.Log;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * Created by ROOT on 3/21/2017.
@@ -11,7 +10,7 @@ import java.util.Date;
 
 public class Note implements Serializable{
 
-    private long mDate;
+    private long mUniqueFilename;
     private String mTitle, mContent;
     private String mFileName;
 
@@ -46,7 +45,7 @@ public class Note implements Serializable{
 
     public Note(long date, String title, String content)
     {
-        mDate       = date;
+        mUniqueFilename = date;
 
         mTitle      = title;
         mContent    = content;
@@ -58,7 +57,7 @@ public class Note implements Serializable{
 
     public Note(long date, String title, String content, DateTime creationDate)
     {
-        mDate       = date;
+        mUniqueFilename = date;
 
         mTitle      = title;
         mContent    = content;
@@ -70,12 +69,12 @@ public class Note implements Serializable{
 
     public long getDate()
     {
-        return mDate;
+        return mUniqueFilename;
     }
 
     public void setDate(long date)
     {
-        mDate = date;
+        mUniqueFilename = date;
     }
 
     public String getTitle() {

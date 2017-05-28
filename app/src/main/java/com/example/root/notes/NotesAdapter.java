@@ -85,10 +85,12 @@ class NotesAdapter extends ArrayAdapter<Note>{
             DateTime creationDate = note.getCreationDate();
             DateTime modificationDate = note.getLastModifiedDate();
 
+            ElapsedTime elapsed;
+
             if(!note.getLastModifiedDate().isDateSet())
             {
 
-                ElapsedTime elapsed = Utilities.elapsedTime(creationDate.getDateTime(), currentDate.getDateTime());
+                elapsed = Utilities.elapsedTime(creationDate.getDateTime(), currentDate.getDateTime());
 
                 if(elapsed.getElapsedSeconds() < 60 &&
                         elapsed.getElapsedMinutes() == 0 &&
@@ -114,7 +116,7 @@ class NotesAdapter extends ArrayAdapter<Note>{
             }
             else
             {
-                ElapsedTime elapsed = Utilities.elapsedTime(modificationDate.getDateTime(), currentDate.getDateTime());
+                elapsed = Utilities.elapsedTime(modificationDate.getDateTime(), currentDate.getDateTime());
 
                 if(elapsed.getElapsedSeconds() < 60 &&
                         elapsed.getElapsedMinutes() == 0 &&

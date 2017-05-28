@@ -3,7 +3,6 @@ package com.example.root.notes;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.IntDef;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,15 +13,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
 
@@ -44,16 +40,6 @@ public class Utilities {
     public static String MODIFIED_DATE = "modified_date";
 
     public static String DEBUG     = "DEBUG";
-
-    public static final int DATE_BEFORE = 1000;
-    public static final int DATE_EQUAL  = 1001;
-    public static final int DATE_AFTER  = 1002;
-    public static final int DATE_COMPARE_ERROR  = -1;
-
-    @IntDef({DATE_BEFORE, DATE_EQUAL, DATE_AFTER})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface DateEquality {
-    }
 
     @TargetApi(Build.VERSION_CODES.N)
     public static boolean saveFile(Context context, Note note, boolean overwrite)
@@ -182,27 +168,22 @@ public class Utilities {
         return fileDeleted;
     }
 
+    public static void createTestNotes(Context context, int nrNotes)
+    {
+        long uniqueFilename;
+
+        Note tempNote = null;
+        for(int i=0; i<nrNotes; i++)
+        {
+            uniqueFilename = System.currentTimeMillis() + i;
+            tempNote = new Note(uniqueFilename, "test" + Integer.toString(i), "Test note " + Integer.toString(i));
+            Utilities.saveFile(context, tempNote, false);
+        }
+        Toast.makeText(context, "Mock notes loaded", Toast.LENGTH_SHORT).show();
+    }
+
     public static DateTime getCurrentDateTime()
     {
-//
-//        // get the supported ids for GMT-08:00 (Pacific Standard Time)
-//        String[] ids = TimeZone.getAvailableIDs(-8 * 60 * 60 * 1000);
-//        // if no ids were returned, something is wrong. get out.
-//        if (ids.length == 0)
-//            System.exit(0);
-//
-//        // begin output
-//        System.out.println("Current Time");
-//
-//        // create a Pacific Standard Time time zone
-//        SimpleTimeZone pdt = new SimpleTimeZone(-8 * 60 * 60 * 1000, ids[0]);
-//
-//        // set up rules for Daylight Saving Time
-//        pdt.setStartRule(Calendar.APRIL, 1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
-//        pdt.setEndRule(Calendar.OCTOBER, -1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
-
-        // create a GregorianCalendar with the Pacific Daylight time zone
-        // and the current date and time
         Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
         Date date = new Date();
         calendar.setTime(date);

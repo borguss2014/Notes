@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
         mListNotes = (ListView) findViewById(R.id.main_notes_list_view);
         selectedItems = new ArrayList<>();
         selectMode = false;
+        
+        //Utilities.createTestNotes(getApplicationContext(), 2000);
     }
 
     @Override
