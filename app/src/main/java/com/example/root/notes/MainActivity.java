@@ -36,21 +36,12 @@ public class MainActivity extends AppCompatActivity {
         mListNotes = (ListView) findViewById(R.id.main_notes_list_view);
         selectedItems = new ArrayList<>();
         selectMode = false;
-        
-        //Utilities.createTestNotes(getApplicationContext(), 2000);
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+        //Utilities.createTestNotes(getApplicationContext(), 10);
 
-        Log.d("RESUME TEST", "CALLING ON RESUME");
-
-        mListNotes.setAdapter(null);
         notes = Utilities.loadAllFiles(getApplicationContext());
 
         notesAdapter = new NotesAdapter(getApplicationContext(), R.layout.notes_adapter_row, notes);
-        mListNotes.setAdapter(notesAdapter);
 
         mListNotes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -106,6 +97,15 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        mListNotes.setAdapter(notesAdapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.d("RESUME TEST", "CALLING ON RESUME");
     }
 
     @Override
@@ -169,9 +169,30 @@ public class MainActivity extends AppCompatActivity {
         return super.onPrepareOptionsMenu(menu);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == Utilities.CREATE_NEW_NOTE_ACTIVITY)
+        {
+            if(resultCode == Utilities.NEW_NOTE_ACTIVITY_RESULT)
+            {
+                Note note = (Note) data.getSerializableExtra("NEW_NOTE");
+                notes.add(note);
+                notesAdapter.notifyDataSetChanged();
+            }
+            else if(resultCode == Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT)
+            {
+                Note note = (Note) data.getSerializableExtra("MODIFIED_NOTE");
+            }
+        }
+    }
+
     private void createNote() {
+        int REQ_CODE_CHILD = Utilities.CREATE_NEW_NOTE_ACTIVITY;
         Intent createNoteIntent = new Intent(getApplicationContext(), NoteActivity.class);
-        startActivity(createNoteIntent);
+        startActivityForResult(createNoteIntent, REQ_CODE_CHILD);
+        //startActivity(createNoteIntent);
     }
 
     public static ArrayList<Integer> retrieveSelectedItems()

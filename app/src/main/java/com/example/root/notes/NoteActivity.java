@@ -235,6 +235,23 @@ public class NoteActivity extends AppCompatActivity {
     private void saveNote(Note note, boolean overwrite)
     {
         Log.d("SAVE NOTE", "SAVING");
+
+        int resultCode;
+        Intent resultIntent = new Intent();
+
+        if(!overwrite)
+        {
+            resultCode = Utilities.NEW_NOTE_ACTIVITY_RESULT;
+            resultIntent.putExtra("NEW_NOTE", note);
+        }
+        else
+        {
+            resultCode = Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT;
+            resultIntent.putExtra("MODIFIED_NOTE", note);
+        }
+
+        setResult(resultCode, resultIntent);
+
         Utilities.saveFile(getApplicationContext(), note, overwrite);
         finish();
     }

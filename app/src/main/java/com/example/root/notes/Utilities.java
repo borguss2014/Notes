@@ -41,6 +41,10 @@ public class Utilities {
 
     public static String DEBUG     = "DEBUG";
 
+    public static int NEW_NOTE_ACTIVITY_RESULT = 1000;
+    public static int OVERWRITE_NOTE_ACTIVITY_RESULT = 1001;
+    public static int CREATE_NEW_NOTE_ACTIVITY = 1002;
+
     @TargetApi(Build.VERSION_CODES.N)
     public static boolean saveFile(Context context, Note note, boolean overwrite)
     {
@@ -50,52 +54,58 @@ public class Utilities {
 
         if(overwrite)
         {
-            File dir = context.getFilesDir();
+//            File dir = context.getFilesDir();
+//            File file = new File(dir.toString() + "/" + note.getFileName());
+//
+//            try {
+//                if (file.exists()) {
+//                    if (file.delete()) {
+//                        Log.d("FILENAME_CHECK", "FILE " + note.getFileName() + " SUCCESSFULLY DELETED");
+//                    } else {
+//                        throw new IOException("File couldn't be deleted");
+//                    }
+//                } else {
+//                    throw new FileNotFoundException("File doesn't exist");
+//                }
+//            }
+//            catch(IOException e)
+//            {
+//                Log.e("FILE_NOT_FOUND", e.getMessage());
+//                e.printStackTrace();
+//            }
 
-            for(File file : dir.listFiles())
+            if(note != null)
             {
-                if(file.getName().equals(note.getFileName()))
-                {
-                    if(file.delete())
-                    {
-                        Log.d("FILENAME CHECK", "FILE " + note.getFileName() + "SUCCESSFULLY DELETED");
-                    }
-                    else
-                    {
-                        Log.d("FILENAME CHECK", "ERROR: COULDN'T DELETE FILE");
-                    }
-                    break;
-                }
+                fileName = note.getFileName();
+                note.setLastModifiedDate(date);
             }
-
-            fileName = note.getFileName();
-
-            note.setLastModifiedDate(date);
+            else
+            {
+                return false;
+            }
         }
         else
         {
-            fileName = String.valueOf(note.getDate()) + EXTENSION;
+            if(note != null)
+            {
+                fileName = String.valueOf(note.getDate()) + EXTENSION;
 
-            note.setFileName(fileName);
-            note.setCreationDate(date);
+                note.setFileName(fileName);
+                note.setCreationDate(date);
+            }
+            else
+            {
+                return false;
+            }
         }
 
-
-        FileOutputStream fos;
-        ObjectOutputStream oos;
-
         try {
-            fos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-            oos = new ObjectOutputStream(fos);
+            FileOutputStream fos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
             oos.writeObject(note);
 
-            oos.close();
-            oos.flush();
-            fos.close();
-
             return true;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -138,6 +148,7 @@ public class Utilities {
 
         return notes;
     }
+
 
     public static void deleteAllFiles(Context context)
     {
