@@ -43,16 +43,6 @@ public class Note implements Serializable{
         mLastModifiedDate   = new DateTime();
     }
 
-//    public Note(String title, String content, DateTime creationDate)
-//    {
-//        mTitle      = title;
-//        mContent    = content;
-//        mFileName   = "";
-//
-//        mCreationDate       = creationDate;
-//        mLastModifiedDate   = new DateTime();
-//    }
-
     public String getTitle() {
         return mTitle;
     }

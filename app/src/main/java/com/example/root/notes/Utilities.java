@@ -23,36 +23,30 @@ import java.util.TimeZone;
 
 
 /**
- * Created by ROOT on 3/21/2017.
+ * Created by Spoiala Cristian on 3/21/2017.
  */
 
-public class Utilities {
+class Utilities {
 
     //bno : binary note
-    public static String NOTE_FILE_EXTENSION = ".bno";
+    static String NOTE_FILE_EXTENSION = ".bno";
 
-    public static String MAIN_DATA = "main_data";
+    static String MAIN_DATA = "main_data";
 
-    public static String TITLE     = "title";
-    public static String CONTENT   = "content";
-    public static String FILENAME  = "filename";
+    static String TITLE     = "title";
+    static String CONTENT   = "content";
+    static String FILENAME  = "filename";
 
-    public static String CREATION_DATE = "creation_date";
-    public static String MODIFIED_DATE = "modified_date";
+    static String CREATION_DATE = "creation_date";
+    static String MODIFIED_DATE = "modified_date";
 
-    public static String DEBUG     = "DEBUG";
-
-    public static int NEW_NOTE_ACTIVITY_RESULT = 1000;
-    public static int OVERWRITE_NOTE_ACTIVITY_RESULT = 1001;
-    public static int CREATE_NEW_NOTE_ACTIVITY = 1002;
+    static int NEW_NOTE_ACTIVITY_RESULT = 1000;
+    static int OVERWRITE_NOTE_ACTIVITY_RESULT = 1001;
+    static int CREATE_NEW_NOTE_ACTIVITY = 1002;
 
 
-    //Overwrite false :
-    // -> create a new file by saving the object representation of a note in binary form
-    //Overwrite true:
-    // -> overwrite the file with a binary representation of the note
     @TargetApi(Build.VERSION_CODES.N)
-    public static boolean saveFile(Context context, Note note, boolean overwrite)
+    static boolean saveFile(Context context, Note note, boolean overwrite)
     {
         DateTime date = getCurrentDateTime();
 
@@ -79,7 +73,6 @@ public class Utilities {
             }
         }
 
-
         try
         {
             FileOutputStream fos = context.openFileOutput(note.getFileName(), Context.MODE_PRIVATE);
@@ -97,7 +90,7 @@ public class Utilities {
         return false;
     }
 
-    public static ArrayList<Note> loadNotes(Context context)
+    static ArrayList<Note> loadNotes(Context context)
     {
         File dir = context.getFilesDir();
 
@@ -107,15 +100,7 @@ public class Utilities {
         {
             public boolean accept(File dir, String name)
             {
-
-                if (name.endsWith(NOTE_FILE_EXTENSION))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return name.endsWith(NOTE_FILE_EXTENSION);
             }
         };
 
@@ -149,7 +134,7 @@ public class Utilities {
     }
 
 
-    public static void deleteAllFiles(Context context)
+    static void deleteAllFiles(Context context)
     {
         File dir = context.getFilesDir();
 
@@ -159,30 +144,28 @@ public class Utilities {
         }
     }
 
-    public static boolean deleteFile(Context context, final String fileName)
+    static boolean deleteFile(Context context, final String fileName)
     {
         File dir = context.getFilesDir();
-        boolean fileDeleted = false;
 
-        for(File file : dir.listFiles())
+        File file = new File(dir + "/" + fileName);
+
+        if(file.exists())
         {
-            if(file.getName().equals(fileName))
-            {
-                Log.d("FILENAME CHECK", "FOUND FILE, DELETING...");
-                file.delete();
-                fileDeleted = true;
-                break;
-            }
+            Log.d("FILENAME CHECK", "FOUND FILE, DELETING...");
+            return file.delete();
         }
-
-        return fileDeleted;
+        else
+        {
+            return false;
+        }
     }
 
     public static void createTestNotes(Context context, int nrNotes)
     {
         String uniqueFilename;
 
-        Note tempNote = null;
+        Note tempNote;
         for(int i=0; i<nrNotes; i++)
         {
             uniqueFilename = String.valueOf(System.currentTimeMillis() + i) + Utilities.NOTE_FILE_EXTENSION;
@@ -193,7 +176,7 @@ public class Utilities {
         Toast.makeText(context, "Mock notes loaded", Toast.LENGTH_SHORT).show();
     }
 
-    public static DateTime getCurrentDateTime()
+    static DateTime getCurrentDateTime()
     {
         Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
         Date date = new Date();
@@ -211,7 +194,7 @@ public class Utilities {
         return dateTime;
     }
 
-    public static ElapsedTime elapsedTime(String d1,String d2)
+    static ElapsedTime elapsedTime(String d1,String d2)
     {
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
