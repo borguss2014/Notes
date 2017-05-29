@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Utilities.createTestNotes(getApplicationContext(), 10);
 
-        notes = Utilities.loadAllFiles(getApplicationContext());
+        notes = Utilities.loadNotes(getApplicationContext());
 
         notesAdapter = new NotesAdapter(getApplicationContext(), R.layout.notes_adapter_row, notes);
 

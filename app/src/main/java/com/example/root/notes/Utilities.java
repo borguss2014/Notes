@@ -8,8 +8,8 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,7 +28,8 @@ import java.util.TimeZone;
 
 public class Utilities {
 
-    private static String EXTENSION = ".bin";
+    //bno : binary note
+    public static String NOTE_FILE_EXTENSION = ".bno";
 
     public static String MAIN_DATA = "main_data";
 
@@ -45,38 +46,20 @@ public class Utilities {
     public static int OVERWRITE_NOTE_ACTIVITY_RESULT = 1001;
     public static int CREATE_NEW_NOTE_ACTIVITY = 1002;
 
+
+    //Overwrite false :
+    // -> create a new file by saving the object representation of a note in binary form
+    //Overwrite true:
+    // -> overwrite the file with a binary representation of the note
     @TargetApi(Build.VERSION_CODES.N)
     public static boolean saveFile(Context context, Note note, boolean overwrite)
     {
-        String fileName;
-
         DateTime date = getCurrentDateTime();
 
         if(overwrite)
         {
-//            File dir = context.getFilesDir();
-//            File file = new File(dir.toString() + "/" + note.getFileName());
-//
-//            try {
-//                if (file.exists()) {
-//                    if (file.delete()) {
-//                        Log.d("FILENAME_CHECK", "FILE " + note.getFileName() + " SUCCESSFULLY DELETED");
-//                    } else {
-//                        throw new IOException("File couldn't be deleted");
-//                    }
-//                } else {
-//                    throw new FileNotFoundException("File doesn't exist");
-//                }
-//            }
-//            catch(IOException e)
-//            {
-//                Log.e("FILE_NOT_FOUND", e.getMessage());
-//                e.printStackTrace();
-//            }
-
             if(note != null)
             {
-                fileName = note.getFileName();
                 note.setLastModifiedDate(date);
             }
             else
@@ -88,9 +71,6 @@ public class Utilities {
         {
             if(note != null)
             {
-                fileName = String.valueOf(note.getDate()) + EXTENSION;
-
-                note.setFileName(fileName);
                 note.setCreationDate(date);
             }
             else
@@ -99,51 +79,70 @@ public class Utilities {
             }
         }
 
-        try {
-            FileOutputStream fos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+
+        try
+        {
+            FileOutputStream fos = context.openFileOutput(note.getFileName(), Context.MODE_PRIVATE);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
 
             oos.writeObject(note);
 
             return true;
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
 
         return false;
     }
 
-    public static ArrayList<Note> loadAllFiles(Context context)
+    public static ArrayList<Note> loadNotes(Context context)
     {
         File dir = context.getFilesDir();
+
         ArrayList<Note> notes = new ArrayList<>();
 
-        FileInputStream fis;
-        ObjectInputStream ois;
+        FilenameFilter filesFilter = new FilenameFilter()
+        {
+            public boolean accept(File dir, String name)
+            {
 
-        try {
-            if(dir.listFiles().length != 0) {
-                for (File file : dir.listFiles()) {
-                    if (file.getName().endsWith(EXTENSION)) {
-                        fis = context.openFileInput(file.getName());
-                        ois = new ObjectInputStream(fis);
-
-                        Note note = (Note) ois.readObject();
-                        Log.d("LOAD", note.getFileName());
-
-                        notes.add(note);
-
-                        ois.close();
-                        fis.close();
-                    }
+                if (name.endsWith(NOTE_FILE_EXTENSION))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
-            else
-            {
-                Toast.makeText(context, "No notes have been written", Toast.LENGTH_SHORT).show();
+        };
+
+        if(dir.listFiles().length != 0)
+        {
+            File[] files = dir.listFiles(filesFilter);
+
+            try {
+                FileInputStream fis;
+                ObjectInputStream ois;
+
+                for (File file : files) {
+                    fis = context.openFileInput(file.getName());
+                    ois = new ObjectInputStream(fis);
+
+                    Note note = (Note) ois.readObject();
+                    Log.d("Utilities-LOAD", note.getFileName());
+
+                    notes.add(note);
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
             }
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+        }
+        else
+        {
+            Toast.makeText(context, "No notes have been written", Toast.LENGTH_SHORT).show();
         }
 
         return notes;
@@ -181,13 +180,14 @@ public class Utilities {
 
     public static void createTestNotes(Context context, int nrNotes)
     {
-        long uniqueFilename;
+        String uniqueFilename;
 
         Note tempNote = null;
         for(int i=0; i<nrNotes; i++)
         {
-            uniqueFilename = System.currentTimeMillis() + i;
-            tempNote = new Note(uniqueFilename, "test" + Integer.toString(i), "Test note " + Integer.toString(i));
+            uniqueFilename = String.valueOf(System.currentTimeMillis() + i) + Utilities.NOTE_FILE_EXTENSION;
+            tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
+            tempNote.setFileName(uniqueFilename);
             Utilities.saveFile(context, tempNote, false);
         }
         Toast.makeText(context, "Mock notes loaded", Toast.LENGTH_SHORT).show();

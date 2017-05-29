@@ -164,9 +164,8 @@ public class NoteActivity extends AppCompatActivity {
 
                 if(mNewNote)
                 {
-                    long uniqueFilename = System.currentTimeMillis();
-
-                    Note note = new Note(uniqueFilename, note_title, note_content);
+                    Note note = new Note(note_title, note_content);
+                    note.setFileName(String.valueOf(System.currentTimeMillis()) + Utilities.NOTE_FILE_EXTENSION);
 
                     saveNote(note, false);
                 }

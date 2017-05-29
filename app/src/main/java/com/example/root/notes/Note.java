@@ -10,8 +10,8 @@ import java.io.Serializable;
 
 public class Note implements Serializable{
 
-    private long mUniqueFilename;
     private String mTitle, mContent;
+
     private String mFileName;
 
     private DateTime mCreationDate;
@@ -43,39 +43,15 @@ public class Note implements Serializable{
         mLastModifiedDate   = new DateTime();
     }
 
-    public Note(long date, String title, String content)
-    {
-        mUniqueFilename = date;
-
-        mTitle      = title;
-        mContent    = content;
-        mFileName   = "";
-
-        mCreationDate       = new DateTime();
-        mLastModifiedDate   = new DateTime();
-    }
-
-    public Note(long date, String title, String content, DateTime creationDate)
-    {
-        mUniqueFilename = date;
-
-        mTitle      = title;
-        mContent    = content;
-        mFileName   = "";
-
-        mCreationDate       = creationDate;
-        mLastModifiedDate   = new DateTime();
-    }
-
-    public long getDate()
-    {
-        return mUniqueFilename;
-    }
-
-    public void setDate(long date)
-    {
-        mUniqueFilename = date;
-    }
+//    public Note(String title, String content, DateTime creationDate)
+//    {
+//        mTitle      = title;
+//        mContent    = content;
+//        mFileName   = "";
+//
+//        mCreationDate       = creationDate;
+//        mLastModifiedDate   = new DateTime();
+//    }
 
     public String getTitle() {
         return mTitle;
@@ -100,8 +76,8 @@ public class Note implements Serializable{
 
     public void setFileName(String filename)
     {
-        Log.d("SET FILENAME", filename);
         mFileName = filename;
+        Log.d("Note-SET FILENAME", mFileName);
     }
 
     public void setCreationDate(DateTime cDate)
