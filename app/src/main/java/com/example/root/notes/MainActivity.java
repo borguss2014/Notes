@@ -27,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private static boolean selectMode;
     private static ArrayList<Integer> selectedItems;
 
+    int currentlyClickedNote;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,11 +42,13 @@ public class MainActivity extends AppCompatActivity {
         selectedItems = new ArrayList<>();
         selectMode = false;
 
+        currentlyClickedNote = -1;
+
         Comparison.initComparators();
         Comparison.setCurrentComparator(Comparison.getCompareByTitle());
-        Comparison.setOrderDescending();
+        //Comparison.setOrderDescending();
 
-        //Utilities.createTestNotes(getApplicationContext(), 4000);
+        //Utilities.createTestNotes(getApplicationContext(), 2000);
 
         notes = Utilities.loadNotes(getApplicationContext());
 
@@ -52,11 +56,14 @@ public class MainActivity extends AppCompatActivity {
 
         notesAdapter = new NotesAdapter(getApplicationContext(), R.layout.notes_adapter_row, notes);
 
-        mListNotes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListNotes.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if(!selectMode)
                 {
+                    currentlyClickedNote = position;
+
                     Note note = (Note) parent.getItemAtPosition(position);
                     Log.d("MAIN ON CLICK", note.getFileName());
                     Log.d("MAIN CLICK CR DATE", note.getCreationDate().toString());
@@ -242,13 +249,19 @@ public class MainActivity extends AppCompatActivity {
 
                     Note modifiedNote = (Note) data.getSerializableExtra("MODIFIED_NOTE");
 
-                    Collections.sort(notes, Comparison.getCompareByFilename());
-                    int index = Collections.binarySearch(notes, modifiedNote, Comparison.getCompareByFilename());
+                    if(currentlyClickedNote != -1)
+                    {
+                        notes.remove(notes.get(currentlyClickedNote));
+                        notes.add(modifiedNote);
+                        Collections.sort(notes, Comparison.getCurrentComparator());
+                        Toast.makeText(getApplicationContext(), "Note modified", Toast.LENGTH_SHORT).show();
+                        currentlyClickedNote = -1;
+                    }
+                    else
+                    {
+                        Toast.makeText(getApplicationContext(), "ERROR: Couldn't delete note", Toast.LENGTH_SHORT).show();
+                    }
 
-                    notes.remove(notes.get(index));
-                    notes.add(modifiedNote);
-                    Collections.sort(notes, Comparison.getCurrentComparator());
-                    Toast.makeText(getApplicationContext(), "Note modified", Toast.LENGTH_SHORT).show();
                     //notesAdapter.notifyDataSetChanged();
                     break;
                 }
@@ -261,11 +274,11 @@ public class MainActivity extends AppCompatActivity {
                     Note toBeDeletedNote = new Note();
                     toBeDeletedNote.setFileName(deletedFilename);
 
-                    Collections.sort(notes, Comparison.getCompareByFilename());
-                    int index = Collections.binarySearch(notes, toBeDeletedNote, Comparison.getCompareByFilename());
-
-                    notes.remove(notes.get(index));
-                    Collections.sort(notes, Comparison.getCurrentComparator());
+                    if(currentlyClickedNote != -1)
+                    {
+                        notes.remove(notes.get(currentlyClickedNote));
+                        currentlyClickedNote = -1;
+                    }
                     //notesAdapter.notifyDataSetChanged();
                     break;
                 }
