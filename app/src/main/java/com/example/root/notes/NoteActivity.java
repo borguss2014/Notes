@@ -165,7 +165,7 @@ public class NoteActivity extends AppCompatActivity {
                 if(mNewNote)
                 {
                     Note note = new Note(note_title, note_content);
-                    note.setFileName(String.valueOf(System.currentTimeMillis()) + Utilities.NOTE_FILE_EXTENSION);
+                    note.setFileName(Utilities.generateUniqueFilename(Utilities.NOTE_FILE_EXTENSION));
 
                     saveNote(note, false);
                 }
@@ -173,9 +173,10 @@ public class NoteActivity extends AppCompatActivity {
                 {
                     mReceivedNote.setTitle(mEditTextTitle.getText().toString());
                     mReceivedNote.setContent(mDLEditTextContent.getText().toString());
+
                     saveNote(mReceivedNote, true);
                 }
-
+                finish();
                 return true;
             }
             case R.id.action_notes_edit_note:
@@ -193,13 +194,13 @@ public class NoteActivity extends AppCompatActivity {
                 if(fileDeleted)
                 {
                     Toast.makeText(getApplicationContext(), "Note successfully deleted" , Toast.LENGTH_SHORT).show();
-                    return true;
                 }
                 else
                 {
                     Toast.makeText(getApplicationContext(), "An error occurred. Note couldn't be deleted" , Toast.LENGTH_SHORT).show();
-                    return false;
                 }
+                finish();
+                return fileDeleted;
             }
             default: return super.onOptionsItemSelected(item);
         }
@@ -233,7 +234,7 @@ public class NoteActivity extends AppCompatActivity {
 
     private void saveNote(Note note, boolean overwrite)
     {
-        Log.d("SAVE NOTE", "SAVING");
+        Log.d("NoteActivity_SAVE_NOTE", "SAVING");
 
         int resultCode;
         Intent resultIntent = new Intent();
@@ -252,7 +253,6 @@ public class NoteActivity extends AppCompatActivity {
         setResult(resultCode, resultIntent);
 
         Utilities.saveFile(getApplicationContext(), note, overwrite);
-        finish();
     }
 
     private void enableEditText(EditText edit, boolean isEnabled)
@@ -270,9 +270,16 @@ public class NoteActivity extends AppCompatActivity {
 
     private boolean deleteNote(Note note)
     {
-        boolean fileDeleted = Utilities.deleteFile(getApplicationContext(), note.getFileName());
-        finish();
-        return fileDeleted;
+        int resultCode;
+        Intent resultIntent = new Intent();
+
+        resultCode = Utilities.DELETE_NOTE_ACTIVITY_RESULT;
+        resultIntent.putExtra("DELETED_NOTE", note.getFileName());
+
+
+        setResult(resultCode, resultIntent);
+
+        return Utilities.deleteFile(getApplicationContext(), note.getFileName());
     }
 
     private boolean notesComparison(Note originalNote, Note newNote)

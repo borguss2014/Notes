@@ -20,6 +20,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.UUID;
 
 
 /**
@@ -29,7 +30,7 @@ import java.util.TimeZone;
 class Utilities {
 
     //bno : binary note
-    static String NOTE_FILE_EXTENSION = ".bno";
+    static final String NOTE_FILE_EXTENSION = ".bno";
 
     static String MAIN_DATA = "main_data";
 
@@ -40,9 +41,11 @@ class Utilities {
     static String CREATION_DATE = "creation_date";
     static String MODIFIED_DATE = "modified_date";
 
-    static int NEW_NOTE_ACTIVITY_RESULT = 1000;
-    static int OVERWRITE_NOTE_ACTIVITY_RESULT = 1001;
-    static int CREATE_NEW_NOTE_ACTIVITY = 1002;
+    static final int NEW_NOTE_ACTIVITY_RESULT = 1000;
+    static final int OVERWRITE_NOTE_ACTIVITY_RESULT = 1001;
+    static final int DELETE_NOTE_ACTIVITY_RESULT = 1002;
+
+    static final int NOTE_ACTIVITY = 1003;
 
 
     @TargetApi(Build.VERSION_CODES.N)
@@ -168,7 +171,7 @@ class Utilities {
         Note tempNote;
         for(int i=0; i<nrNotes; i++)
         {
-            uniqueFilename = String.valueOf(System.currentTimeMillis() + i) + Utilities.NOTE_FILE_EXTENSION;
+            uniqueFilename = generateUniqueFilename(NOTE_FILE_EXTENSION);
             tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
             tempNote.setFileName(uniqueFilename);
             Utilities.saveFile(context, tempNote, false);
@@ -237,6 +240,11 @@ class Utilities {
 
         return new ElapsedTime(elapsedDays, elapsedHours,
                 elapsedMinutes, elapsedSeconds);
+    }
+
+    static String generateUniqueFilename(String extension)
+    {
+        return UUID.randomUUID().toString() + extension;
     }
 
 }

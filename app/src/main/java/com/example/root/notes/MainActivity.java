@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,15 +32,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.d("DEBUG", "ON_CREATE");
+
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
         mListNotes = (ListView) findViewById(R.id.main_notes_list_view);
         selectedItems = new ArrayList<>();
         selectMode = false;
 
-        //Utilities.createTestNotes(getApplicationContext(), 10);
+        Comparison.initComparators();
+        Comparison.setCurrentComparator(Comparison.getCompareByTitle());
+        Comparison.setOrderDescending();
+
+        //Utilities.createTestNotes(getApplicationContext(), 4000);
 
         notes = Utilities.loadNotes(getApplicationContext());
+
+        Collections.sort(notes, Comparison.getCurrentComparator());
 
         notesAdapter = new NotesAdapter(getApplicationContext(), R.layout.notes_adapter_row, notes);
 
@@ -58,11 +67,12 @@ public class MainActivity extends AppCompatActivity {
                     noteData.put(Utilities.CONTENT,         note.getContent());
                     noteData.put(Utilities.FILENAME,        note.getFileName());
 
-                    Intent intent = new Intent(view.getContext(), NoteActivity.class);
-                    intent.putExtra(Utilities.MAIN_DATA, noteData);
-                    intent.putExtra(Utilities.CREATION_DATE, note.getCreationDate());
-                    intent.putExtra(Utilities.MODIFIED_DATE, note.getLastModifiedDate());
-                    startActivity(intent);
+                    int REQ_CODE_CHILD = Utilities.NOTE_ACTIVITY;
+                    Intent modifyNoteIntent = new Intent(view.getContext(), NoteActivity.class);
+                    modifyNoteIntent.putExtra(Utilities.MAIN_DATA, noteData);
+                    modifyNoteIntent.putExtra(Utilities.CREATION_DATE, note.getCreationDate());
+                    modifyNoteIntent.putExtra(Utilities.MODIFIED_DATE, note.getLastModifiedDate());
+                    startActivityForResult(modifyNoteIntent, REQ_CODE_CHILD);
                 }
                 else
                 {
@@ -102,10 +112,47 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        Log.d("DEBUG", "ON_START");
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
-        Log.d("RESUME TEST", "CALLING ON RESUME");
+        Log.d("DEBUG", "ON_RESUME");
+
+        notesAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Log.d("DEBUG", "ON_PAUSE");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        Log.d("DEBUG", "ON_STOP");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        Log.d("DEBUG", "ON_DESTROY");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        Log.d("DEBUG", "ON_RESTART");
     }
 
     @Override
@@ -126,10 +173,12 @@ public class MainActivity extends AppCompatActivity {
                 Utilities.deleteAllFiles(getApplicationContext());
                 notes.clear();
                 notesAdapter.notifyDataSetChanged();
+                Log.d("MAIN_ACTIVITY_PURGE", "Notes purged");
                 return true;
             case R.id.action_main_select_delete:
 
                 Collections.sort(selectedItems);
+
                 for(int pos=0; pos<selectedItems.size(); pos++)
                 {
                     Note note = (Note) mListNotes.getItemAtPosition(selectedItems.get(pos));
@@ -173,26 +222,61 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == Utilities.CREATE_NEW_NOTE_ACTIVITY)
+        if(requestCode == Utilities.NOTE_ACTIVITY)
         {
-            if(resultCode == Utilities.NEW_NOTE_ACTIVITY_RESULT)
+            switch(resultCode)
             {
-                Note note = (Note) data.getSerializableExtra("NEW_NOTE");
-                notes.add(note);
-                notesAdapter.notifyDataSetChanged();
-            }
-            else if(resultCode == Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT)
-            {
-                Note note = (Note) data.getSerializableExtra("MODIFIED_NOTE");
+                case Utilities.NEW_NOTE_ACTIVITY_RESULT:
+                {
+                    Log.d("MAIN_ACTIVITY_RESULT", "New note result");
+
+                    Note newNote = (Note) data.getSerializableExtra("NEW_NOTE");
+                    notes.add(newNote);
+                    Collections.sort(notes, Comparison.getCurrentComparator());
+                    //notesAdapter.notifyDataSetChanged();
+                    break;
+                }
+                case Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT:
+                {
+                    Log.d("MAIN_ACTIVITY_RESULT", "Overwrite note result");
+
+                    Note modifiedNote = (Note) data.getSerializableExtra("MODIFIED_NOTE");
+
+                    Collections.sort(notes, Comparison.getCompareByFilename());
+                    int index = Collections.binarySearch(notes, modifiedNote, Comparison.getCompareByFilename());
+
+                    notes.remove(notes.get(index));
+                    notes.add(modifiedNote);
+                    Collections.sort(notes, Comparison.getCurrentComparator());
+                    Toast.makeText(getApplicationContext(), "Note modified", Toast.LENGTH_SHORT).show();
+                    //notesAdapter.notifyDataSetChanged();
+                    break;
+                }
+                case Utilities.DELETE_NOTE_ACTIVITY_RESULT:
+                {
+                    Log.d("MAIN_ACTIVITY_RESULT", "Delete note result");
+
+                    String deletedFilename = data.getStringExtra("DELETED_NOTE");
+
+                    Note toBeDeletedNote = new Note();
+                    toBeDeletedNote.setFileName(deletedFilename);
+
+                    Collections.sort(notes, Comparison.getCompareByFilename());
+                    int index = Collections.binarySearch(notes, toBeDeletedNote, Comparison.getCompareByFilename());
+
+                    notes.remove(notes.get(index));
+                    Collections.sort(notes, Comparison.getCurrentComparator());
+                    //notesAdapter.notifyDataSetChanged();
+                    break;
+                }
             }
         }
     }
 
     private void createNote() {
-        int REQ_CODE_CHILD = Utilities.CREATE_NEW_NOTE_ACTIVITY;
+        int REQ_CODE_CHILD = Utilities.NOTE_ACTIVITY;
         Intent createNoteIntent = new Intent(getApplicationContext(), NoteActivity.class);
         startActivityForResult(createNoteIntent, REQ_CODE_CHILD);
-        //startActivity(createNoteIntent);
     }
 
     public static ArrayList<Integer> retrieveSelectedItems()

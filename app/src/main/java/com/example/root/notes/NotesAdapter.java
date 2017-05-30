@@ -3,7 +3,6 @@ package com.example.root.notes;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,9 +11,6 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,22 +88,19 @@ class NotesAdapter extends ArrayAdapter<Note>{
 
                 elapsed = Utilities.elapsedTime(creationDate.getDateTime(), currentDate.getDateTime());
 
-                if(elapsed.getElapsedSeconds() < 60 &&
-                        elapsed.getElapsedMinutes() == 0 &&
-                        elapsed.getElapsedHours() == 0 &&
-                        elapsed.getElapsedDays() == 0)
+                if(!elapsed.isOneMinuteElapsed())
                 {
                     date = "Created seconds ago";
                 }
-                else if(elapsed.getElapsedMinutes() < 60 && elapsed.getElapsedHours() == 0 && elapsed.getElapsedDays() == 0)
+                else if(!elapsed.isOneHourElapsed())
                 {
                     date = "Created " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
                 }
-                else if(elapsed.getElapsedHours() < 24 && elapsed.getElapsedDays() == 0)
+                else if(!elapsed.isOneDayElapsed())
                 {
                     date = "Created " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
                 }
-                else if(elapsed.getElapsedDays() > 0)
+                else if(elapsed.isOneDayElapsed())
                 {
                     date = Integer.toString(creationDate.getMonth()) + "/"
                             + Integer.toString(creationDate.getDay()) + "/"
