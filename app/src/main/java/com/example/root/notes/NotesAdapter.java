@@ -34,33 +34,44 @@ class ViewHolder
 class NotesAdapter extends ArrayAdapter<Note>{
 
     private ViewHolder holder;
+    LayoutInflater inflater;
     private ArrayList<Integer> mSelectedItems;
     private final int WRAP_CONTENT_LENGTH = 35;
 
     NotesAdapter(Context context, int resource, List<Note> objects) {
         super(context, resource, objects);
-        holder = new ViewHolder();
+
     }
 
     @NonNull
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         mSelectedItems = MainActivity.retrieveSelectedItems();
-        LayoutInflater inflater = LayoutInflater.from(getContext());
 
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.notes_adapter_row, null);
+        if(inflater == null)
+        {
+            inflater= LayoutInflater.from(getContext());
         }
 
-        holder.title = (TextView) convertView.findViewById(R.id.adapter_notes_title);
-        holder.content = (TextView) convertView.findViewById(R.id.adapter_notes_content);
-        holder.date = (TextView) convertView.findViewById(R.id.adapter_notes_date);
+        if (convertView == null)
+        {
+            convertView = inflater.inflate(R.layout.notes_adapter_row, null);
+            holder = new ViewHolder();
 
-        holder.titleContentLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_title_content_layout);
-        holder.photoLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_photo_layout);
-        holder.parentLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_parent_layout);
+            holder.title = (TextView) convertView.findViewById(R.id.adapter_notes_title);
+            holder.content = (TextView) convertView.findViewById(R.id.adapter_notes_content);
+            holder.date = (TextView) convertView.findViewById(R.id.adapter_notes_date);
 
-        convertView.setTag(holder);
+            holder.titleContentLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_title_content_layout);
+            holder.photoLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_photo_layout);
+            holder.parentLayout = (LinearLayout) convertView.findViewById(R.id.adapter_notes_parent_layout);
+
+            convertView.setTag(holder);
+        }
+        else
+        {
+            holder = (ViewHolder) convertView.getTag();
+        }
 
         Note note = getItem(position);
         if (note != null)

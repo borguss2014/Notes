@@ -2,6 +2,7 @@ package com.example.root.notes;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -13,6 +14,7 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
 public class NoteActivity extends AppCompatActivity {
@@ -190,17 +192,10 @@ public class NoteActivity extends AppCompatActivity {
             }
             case R.id.action_notes_delete_note:
             {
-                boolean fileDeleted = deleteNote(mReceivedNote);
-                if(fileDeleted)
-                {
-                    Toast.makeText(getApplicationContext(), "Note successfully deleted" , Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    Toast.makeText(getApplicationContext(), "An error occurred. Note couldn't be deleted" , Toast.LENGTH_SHORT).show();
-                }
+                deleteNote();
+
                 finish();
-                return fileDeleted;
+                return true;
             }
             default: return super.onOptionsItemSelected(item);
         }
@@ -251,8 +246,6 @@ public class NoteActivity extends AppCompatActivity {
         }
 
         setResult(resultCode, resultIntent);
-
-        Utilities.saveFile(getApplicationContext(), note, overwrite);
     }
 
     private void enableEditText(EditText edit, boolean isEnabled)
@@ -268,18 +261,14 @@ public class NoteActivity extends AppCompatActivity {
         }
     }
 
-    private boolean deleteNote(Note note)
+    private void deleteNote()
     {
         int resultCode;
         Intent resultIntent = new Intent();
 
         resultCode = Utilities.DELETE_NOTE_ACTIVITY_RESULT;
-        resultIntent.putExtra("DELETED_NOTE", note.getFileName());
-
 
         setResult(resultCode, resultIntent);
-
-        return Utilities.deleteFile(getApplicationContext(), note.getFileName());
     }
 
     private boolean notesComparison(Note originalNote, Note newNote)

@@ -1,7 +1,13 @@
 package com.example.root.notes;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Process;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,21 +19,91 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity {
-
+public class MainActivity extends AppCompatActivity
+{
     ListView mListNotes;
 
-    ArrayList<Note> notes;
-    NotesAdapter notesAdapter;
+    private ArrayList<Note> mNotes;
+    private static NotesAdapter mNotesAdapter;
 
-    private static boolean selectMode;
-    private static ArrayList<Integer> selectedItems;
+    private static boolean mSelectMode;
+    private static ArrayList<Integer> mSelectedItems;
 
-    int currentlyClickedNote;
+    private static int mCurrentlyClickedNote;
+
+    private static Note mReceivedNote;
+
+    private Context mContext;
+
+    private static class IOHandler extends Handler
+    {
+        private final WeakReference<MainActivity> mActivity;
+
+        private IOHandler(MainActivity activity)
+        {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity activity = mActivity.get();
+
+            if(activity == null) return;
+
+            switch(msg.what)
+            {
+                case Utilities.NOTE_ADDED:
+                {
+                    Log.d("HANDLER", "NEW NOTE ADDED");
+
+                    mReceivedNote = null;
+                    mNotesAdapter.notifyDataSetChanged();
+                    break;
+                }
+                case Utilities.NOTE_MODIFIED:
+                {
+                    mReceivedNote = null;
+                    mCurrentlyClickedNote = Utilities.NO_NOTE_CLICKED;
+                    mNotesAdapter.notifyDataSetChanged();
+                    break;
+                }
+                case Utilities.NOTE_DELETED:
+                {
+                    boolean isDeleted = (boolean) msg.obj;
+
+                    if(isDeleted)
+                    {
+                        Toast.makeText(activity.getApplicationContext(), "Note successfully deleted" , Toast.LENGTH_SHORT).show();
+                    }
+                    else
+                    {
+                        Toast.makeText(activity.getApplicationContext(), "An error occurred. Note couldn't be deleted" , Toast.LENGTH_SHORT).show();
+                    }
+
+                    mCurrentlyClickedNote = Utilities.NO_NOTE_CLICKED;
+                    mNotesAdapter.notifyDataSetChanged();
+                    break;
+                }
+            }
+
+        }
+    }
+
+    private final IOHandler mHandler = new IOHandler(this);
+
+    private Runnable createTestNotes = new Runnable() {
+        @Override
+        public void run()
+        {
+            Utilities.createTestNotes(mContext, 8000);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,33 +112,31 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("DEBUG", "ON_CREATE");
 
+        mContext = this;
+
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
         mListNotes = (ListView) findViewById(R.id.main_notes_list_view);
-        selectedItems = new ArrayList<>();
-        selectMode = false;
+        mSelectedItems = new ArrayList<>();
+        mSelectMode = false;
 
-        currentlyClickedNote = -1;
+        mCurrentlyClickedNote = Utilities.NO_NOTE_CLICKED;
 
         Comparison.initComparators();
         Comparison.setCurrentComparator(Comparison.getCompareByTitle());
         //Comparison.setOrderDescending();
 
-        //Utilities.createTestNotes(getApplicationContext(), 2000);
+        mNotes = new ArrayList<>();
+        mNotesAdapter = new NotesAdapter(getApplicationContext(), R.layout.notes_adapter_row, mNotes);
 
-        notes = Utilities.loadNotes(getApplicationContext());
-
-        Collections.sort(notes, Comparison.getCurrentComparator());
-
-        notesAdapter = new NotesAdapter(getApplicationContext(), R.layout.notes_adapter_row, notes);
 
         mListNotes.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(!selectMode)
+                if(!mSelectMode)
                 {
-                    currentlyClickedNote = position;
+                    mCurrentlyClickedNote = position;
 
                     Note note = (Note) parent.getItemAtPosition(position);
                     Log.d("MAIN ON CLICK", note.getFileName());
@@ -84,17 +158,17 @@ public class MainActivity extends AppCompatActivity {
                 else
                 {
                     Log.d("Select mode click", Integer.toString(position));
-                    if(!selectedItems.contains(position))
+                    if(!mSelectedItems.contains(position))
                     {
                         Log.d("Toggle item", "Item at position " + Integer.toString(position) + " selected");
-                        selectedItems.add(position);
+                        mSelectedItems.add(position);
                     }
                     else
                     {
                         Log.d("Toggle item", "Item at position " + Integer.toString(position) + " deselected");
-                        selectedItems.remove(selectedItems.indexOf(position));
+                        mSelectedItems.remove(mSelectedItems.indexOf(position));
                     }
-                    notesAdapter.notifyDataSetChanged();
+                    mNotesAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -103,19 +177,56 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                if(!selectMode)
+                if(!mSelectMode)
                 {
                     Log.d("Select mode long click", Integer.toString(position));
-                    selectedItems.add(position);
-                    selectMode = true;
+                    mSelectedItems.add(position);
+                    mSelectMode = true;
                     invalidateOptionsMenu();
-                    notesAdapter.notifyDataSetChanged();
+                    mNotesAdapter.notifyDataSetChanged();
                 }
                 return true;
             }
         });
 
-        mListNotes.setAdapter(notesAdapter);
+        if(savedInstanceState != null)
+        {
+            Log.d("RESTORE_INSTANCE",  "Restoring notes array list ...");
+
+            int sz = savedInstanceState.getInt("SIZE");
+
+            try
+            {
+                for(int i=0; i<sz; i++)
+                {
+                    mNotes.add(((ArrayList<Note>) savedInstanceState.get("NOTES")).get(i));
+                }
+            }
+            catch(IndexOutOfBoundsException e)
+            {
+                e.printStackTrace();
+            }
+
+            mNotesAdapter.notifyDataSetChanged();
+            mListNotes.setAdapter(mNotesAdapter);
+        }
+        else
+        {
+            LoadFilesTask loadAllNotes = new LoadFilesTask(this);
+            loadAllNotes.execute();
+        }
+
+//        Thread t = new Thread(createTestNotes);
+//        t.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
+//        t.start();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putSerializable("NOTES", mNotes);
+        outState.putInt("SIZE", mNotes.size());
     }
 
     @Override
@@ -131,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("DEBUG", "ON_RESUME");
 
-        notesAdapter.notifyDataSetChanged();
+        //mNotesAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -178,29 +289,29 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_main_purge:
                 Utilities.deleteAllFiles(getApplicationContext());
-                notes.clear();
-                notesAdapter.notifyDataSetChanged();
+                mNotes.clear();
+                mNotesAdapter.notifyDataSetChanged();
                 Log.d("MAIN_ACTIVITY_PURGE", "Notes purged");
                 return true;
             case R.id.action_main_select_delete:
 
-                Collections.sort(selectedItems);
+                Collections.sort(mSelectedItems);
 
-                for(int pos=0; pos<selectedItems.size(); pos++)
+                for(int pos = 0; pos< mSelectedItems.size(); pos++)
                 {
-                    Note note = (Note) mListNotes.getItemAtPosition(selectedItems.get(pos));
+                    Note note = (Note) mListNotes.getItemAtPosition(mSelectedItems.get(pos));
                     Utilities.deleteFile(getApplicationContext(), note.getFileName());
-                    notes.remove(notes.indexOf(note));
+                    mNotes.remove(mNotes.indexOf(note));
 
-                    for(int decrement=pos+1; decrement<selectedItems.size(); decrement++)
+                    for(int decrement = pos+1; decrement< mSelectedItems.size(); decrement++)
                     {
-                        selectedItems.set(decrement, selectedItems.get(decrement)-1);
+                        mSelectedItems.set(decrement, mSelectedItems.get(decrement)-1);
                     }
                 }
-                selectedItems.clear();
-                selectMode = false;
+                mSelectedItems.clear();
+                mSelectMode = false;
                 invalidateOptionsMenu();
-                notesAdapter.notifyDataSetChanged();
+                mNotesAdapter.notifyDataSetChanged();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -212,11 +323,11 @@ public class MainActivity extends AppCompatActivity {
 
         MenuInflater inflater = getMenuInflater();
 
-        if(!selectMode && menu.size() == 0)
+        if(!mSelectMode && menu.size() == 0)
         {
             inflater.inflate(R.menu.main_notes_menu, menu);
         }
-        else if(selectMode && menu.size() > 0)
+        else if(mSelectMode && menu.size() > 0)
         {
             menu.clear();
             inflater.inflate(R.menu.main_notes_select_menu, menu);
@@ -237,49 +348,40 @@ public class MainActivity extends AppCompatActivity {
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "New note result");
 
-                    Note newNote = (Note) data.getSerializableExtra("NEW_NOTE");
-                    notes.add(newNote);
-                    Collections.sort(notes, Comparison.getCurrentComparator());
-                    //notesAdapter.notifyDataSetChanged();
+                    mReceivedNote = (Note) data.getSerializableExtra("NEW_NOTE");
+
+                    AddNoteOperation addNote = new AddNoteOperation(this, mReceivedNote);
+
+                    Thread noteAdditionThread = new Thread(addNote);
+                    noteAdditionThread.start();
+                    noteAdditionThread.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
                     break;
                 }
                 case Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT:
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Overwrite note result");
 
-                    Note modifiedNote = (Note) data.getSerializableExtra("MODIFIED_NOTE");
+                    mReceivedNote = (Note) data.getSerializableExtra("MODIFIED_NOTE");
 
-                    if(currentlyClickedNote != -1)
-                    {
-                        notes.remove(notes.get(currentlyClickedNote));
-                        notes.add(modifiedNote);
-                        Collections.sort(notes, Comparison.getCurrentComparator());
-                        Toast.makeText(getApplicationContext(), "Note modified", Toast.LENGTH_SHORT).show();
-                        currentlyClickedNote = -1;
-                    }
-                    else
-                    {
-                        Toast.makeText(getApplicationContext(), "ERROR: Couldn't delete note", Toast.LENGTH_SHORT).show();
-                    }
+                    ModifyNoteOperation modifyNote = new ModifyNoteOperation(this, mReceivedNote);
 
-                    //notesAdapter.notifyDataSetChanged();
+                    Thread noteModificationThread = new Thread(modifyNote);
+                    noteModificationThread.start();
+                    noteModificationThread.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
                     break;
                 }
                 case Utilities.DELETE_NOTE_ACTIVITY_RESULT:
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Delete note result");
 
-                    String deletedFilename = data.getStringExtra("DELETED_NOTE");
+                    DeleteNoteOperation deleteNote = new DeleteNoteOperation(this);
 
-                    Note toBeDeletedNote = new Note();
-                    toBeDeletedNote.setFileName(deletedFilename);
+                    Thread noteDeletionThread = new Thread(deleteNote);
+                    noteDeletionThread.start();
+                    noteDeletionThread.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
-                    if(currentlyClickedNote != -1)
-                    {
-                        notes.remove(notes.get(currentlyClickedNote));
-                        currentlyClickedNote = -1;
-                    }
-                    //notesAdapter.notifyDataSetChanged();
                     break;
                 }
             }
@@ -294,11 +396,31 @@ public class MainActivity extends AppCompatActivity {
 
     public static ArrayList<Integer> retrieveSelectedItems()
     {
-        return selectedItems;
+        return mSelectedItems;
     }
 
     public static boolean selectModeStatus()
     {
-        return selectMode;
+        return mSelectMode;
+    }
+
+    public IOHandler getHandler()
+    {
+        return mHandler;
+    }
+
+    public ArrayList<Note> getNotes()
+    {
+        return mNotes;
+    }
+
+    public int getCurrentlyClickedNote()
+    {
+        return mCurrentlyClickedNote;
+    }
+
+    public NotesAdapter getAdapter()
+    {
+        return mNotesAdapter;
     }
 }

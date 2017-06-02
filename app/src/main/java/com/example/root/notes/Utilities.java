@@ -47,6 +47,12 @@ class Utilities {
 
     static final int NOTE_ACTIVITY = 1003;
 
+    static final int NO_NOTE_CLICKED = 1004;
+
+    static final int NOTE_ADDED = 1005;
+    static final int NOTE_MODIFIED = 1006;
+    static final int NOTE_DELETED = 1007;
+
 
     @TargetApi(Build.VERSION_CODES.N)
     static boolean saveFile(Context context, Note note, boolean overwrite)
@@ -93,48 +99,50 @@ class Utilities {
         return false;
     }
 
-    static ArrayList<Note> loadNotes(Context context)
-    {
-        File dir = context.getFilesDir();
-
-        ArrayList<Note> notes = new ArrayList<>();
-
-        FilenameFilter filesFilter = new FilenameFilter()
-        {
-            public boolean accept(File dir, String name)
-            {
-                return name.endsWith(NOTE_FILE_EXTENSION);
-            }
-        };
-
-        if(dir.listFiles().length != 0)
-        {
-            File[] files = dir.listFiles(filesFilter);
-
-            try {
-                FileInputStream fis;
-                ObjectInputStream ois;
-
-                for (File file : files) {
-                    fis = context.openFileInput(file.getName());
-                    ois = new ObjectInputStream(fis);
-
-                    Note note = (Note) ois.readObject();
-                    Log.d("Utilities-LOAD", note.getFileName());
-
-                    notes.add(note);
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        else
-        {
-            Toast.makeText(context, "No notes have been written", Toast.LENGTH_SHORT).show();
-        }
-
-        return notes;
-    }
+//    static void loadNotes(Context context, ArrayList<Note> notesList)
+//    {
+//        File dir = context.getFilesDir();
+//
+//        FilenameFilter filesFilter = new FilenameFilter()
+//        {
+//            public boolean accept(File dir, String name)
+//            {
+//                return name.endsWith(NOTE_FILE_EXTENSION);
+//            }
+//        };
+//
+//        File[] files = dir.listFiles(filesFilter);
+//        if(files.length != 0) {
+//
+//            int fileCount = 0;
+//
+//            try {
+//                FileInputStream fis;
+//                ObjectInputStream ois;
+//
+//                Log.d("UTILITIES_LOAD_NOTES", "Loading notes...");
+//
+//                for (File file : files)
+//                {
+//                    fileCount++;
+//
+//                    int progress = (fileCount * 100)/files.length;
+//
+//                    fis = context.openFileInput(file.getName());
+//                    ois = new ObjectInputStream(fis);
+//
+//                    Note note = (Note) ois.readObject();
+//                    //Log.d("Utilities-LOAD", note.getFileName());
+//
+//                    notesList.add(note);
+//                }
+//            } catch (IOException | ClassNotFoundException e) {
+//                e.printStackTrace();
+//            }
+//
+//            Log.d("UTILITIES_LOAD_NOTES", "Notes loaded from disk");
+//        }
+//    }
 
 
     static void deleteAllFiles(Context context)
@@ -164,19 +172,15 @@ class Utilities {
         }
     }
 
-    public static void createTestNotes(Context context, int nrNotes)
+    static void createTestNotes(Context context, int nrNotes)
     {
-        String uniqueFilename;
-
         Note tempNote;
         for(int i=0; i<nrNotes; i++)
         {
-            uniqueFilename = generateUniqueFilename(NOTE_FILE_EXTENSION);
             tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
-            tempNote.setFileName(uniqueFilename);
+            tempNote.setFileName(generateUniqueFilename(NOTE_FILE_EXTENSION));
             Utilities.saveFile(context, tempNote, false);
         }
-        Toast.makeText(context, "Mock notes loaded", Toast.LENGTH_SHORT).show();
     }
 
     static DateTime getCurrentDateTime()
