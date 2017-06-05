@@ -1,7 +1,5 @@
 package com.example.root.notes;
 
-import android.util.Log;
-
 import java.io.Serializable;
 
 /**
@@ -10,17 +8,20 @@ import java.io.Serializable;
 
 public class Note implements Serializable{
 
-    private String mTitle, mContent;
+    private String      mTitle, mContent;
 
-    private String mFileName;
+    private String      mFileName;
 
-    private DateTime mCreationDate;
-    private DateTime mLastModifiedDate;
+    private DateTime    mCreationDate;
+    private DateTime    mLastModifiedDate;
 
 
     public Note()
     {
         mFileName   = "";
+
+        mCreationDate = new DateTime();
+        mLastModifiedDate = new DateTime();
     }
 
     public Note(String title)
@@ -29,8 +30,8 @@ public class Note implements Serializable{
         mContent    = "";
         mFileName   = "";
 
-        mCreationDate       = new DateTime();
-        mLastModifiedDate   = new DateTime();
+        mCreationDate = new DateTime();
+        mLastModifiedDate = new DateTime();
     }
 
     public Note(String title, String content)
@@ -39,8 +40,8 @@ public class Note implements Serializable{
         mContent    = content;
         mFileName   = "";
 
-        mCreationDate       = new DateTime();
-        mLastModifiedDate   = new DateTime();
+        mCreationDate = new DateTime();
+        mLastModifiedDate = new DateTime();
     }
 
     public String getTitle() {
@@ -51,42 +52,46 @@ public class Note implements Serializable{
         this.mTitle = mTitle;
     }
 
-    public String getContent() {
+    String getContent() {
         return mContent;
     }
 
-    public void setContent(String mContent) {
+    void setContent(String mContent) {
         this.mContent = mContent;
     }
 
-    public String getFileName()
+    String getFileName()
     {
         return mFileName;
     }
 
-    public void setFileName(String filename)
+    void setFileName(String filename)
     {
         mFileName = filename;
-        Log.d("Note-SET FILENAME", mFileName);
     }
 
-    public void setCreationDate(DateTime cDate)
+    void setCreationDate(DateTime cDate)
     {
         mCreationDate = cDate;
     }
 
-    public DateTime getCreationDate()
+    DateTime getCreationDate()
     {
         return mCreationDate;
     }
 
-    public void setLastModifiedDate(DateTime mDate)
+    void setLastModifiedDate(DateTime mDate)
     {
         mLastModifiedDate = mDate;
     }
 
-    public DateTime getLastModifiedDate()
+    DateTime getLastModifiedDate()
     {
         return mLastModifiedDate;
+    }
+
+    boolean isEqual(Note note)
+    {
+        return mTitle.equals(note.getTitle()) && mContent.equals(note.getContent());
     }
 }

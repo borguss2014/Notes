@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by ROOT on 3/24/2017.
  */
 
-public class DateTime implements Serializable{
+class DateTime implements Serializable{
     private int mHour;
     private int mMinute;
     private int mSeconds;
@@ -15,7 +15,7 @@ public class DateTime implements Serializable{
     private int mMonth;
     private int mYear;
 
-    public DateTime()
+    DateTime()
     {
         this.mHour      = -1;
         this.mMinute    = -1;
@@ -30,7 +30,7 @@ public class DateTime implements Serializable{
         return mHour;
     }
 
-    public void setHour(int mHour) {
+    void setHour(int mHour) {
         this.mHour = mHour;
     }
 
@@ -38,7 +38,7 @@ public class DateTime implements Serializable{
         return mMinute;
     }
 
-    public void setMinute(int mMinute) {
+    void setMinute(int mMinute) {
         this.mMinute = mMinute;
     }
 
@@ -46,41 +46,37 @@ public class DateTime implements Serializable{
         return mSeconds;
     }
 
-    public void setSeconds(int mSeconds) {
+    void setSeconds(int mSeconds) {
         this.mSeconds = mSeconds;
     }
 
-    public int getDay() {
+    int getDay() {
         return mDay;
     }
 
-    public void setDay(int day) {
+    void setDay(int day) {
         this.mDay = day;
     }
 
-    public int getMonth() {
+    int getMonth() {
         return mMonth;
     }
 
-    public void setMonth(int month) {
+    void setMonth(int month) {
         this.mMonth = month;
     }
 
-    public int getYear() {
+    int getYear() {
         return mYear;
     }
 
-    public void setYear(int year) {
+    void setYear(int year) {
         this.mYear = year;
     }
 
-    public boolean isDateSet()
+    boolean isDateSet()
     {
-        if(mDay == -1 && mMonth == -1 && mYear == -1)
-        {
-            return false;
-        }
-        return true;
+        return !(mDay == -1 && mMonth == -1 && mYear == -1);
     }
 
     public boolean isTimeSet()
@@ -102,7 +98,7 @@ public class DateTime implements Serializable{
         return mHour + ":" + mMinute + ":" + mSeconds;
     }
 
-    public String getDateTime()
+    String getDateTime()
     {
         return mMonth + "/" + mDay + "/" + mYear + " " +
                 mHour + ":" + mMinute + ":" + mSeconds;

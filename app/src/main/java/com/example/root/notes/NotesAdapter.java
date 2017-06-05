@@ -34,7 +34,7 @@ class ViewHolder
 class NotesAdapter extends ArrayAdapter<Note>{
 
     private ViewHolder holder;
-    LayoutInflater inflater;
+    private LayoutInflater inflater;
     private ArrayList<Integer> mSelectedItems;
     private final int WRAP_CONTENT_LENGTH = 35;
 
@@ -45,7 +45,8 @@ class NotesAdapter extends ArrayAdapter<Note>{
 
     @NonNull
     @Override
-    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent)
+    {
         mSelectedItems = MainActivity.retrieveSelectedItems();
 
         if(inflater == null)

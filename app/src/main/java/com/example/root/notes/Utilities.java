@@ -4,18 +4,12 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
-
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -32,118 +26,40 @@ class Utilities {
     //bno : binary note
     static final String NOTE_FILE_EXTENSION = ".bno";
 
-    static String MAIN_DATA = "main_data";
+    static final String MAIN_DATA = "main_data";
+    static final String NOTE_FROM_EDITOR = "NOTE_FROM_EDITOR";
 
-    static String TITLE     = "title";
-    static String CONTENT   = "content";
-    static String FILENAME  = "filename";
-
-    static String CREATION_DATE = "creation_date";
-    static String MODIFIED_DATE = "modified_date";
+    static final int NOTE_EDITOR_ACTIVITY = 1003;
 
     static final int NEW_NOTE_ACTIVITY_RESULT = 1000;
     static final int OVERWRITE_NOTE_ACTIVITY_RESULT = 1001;
     static final int DELETE_NOTE_ACTIVITY_RESULT = 1002;
 
-    static final int NOTE_ACTIVITY = 1003;
-
     static final int NO_NOTE_CLICKED = 1004;
 
-    static final int NOTE_ADDED = 1005;
-    static final int NOTE_MODIFIED = 1006;
-    static final int NOTE_DELETED = 1007;
+    static final int HANDLER_MESSAGE_NOTE_ADDED = 1005;
+    static final int HANDLER_MESSAGE_NOTE_MODIFIED = 1006;
+    static final int HANDLER_MESSAGE_NOTE_DELETED = 1007;
 
 
     @TargetApi(Build.VERSION_CODES.N)
-    static boolean saveFile(Context context, Note note, boolean overwrite)
+    static boolean saveFile(Context context, Note note)
     {
-        DateTime date = getCurrentDateTime();
+        if(note != null) {
+            try {
+                FileOutputStream fos = context.openFileOutput(note.getFileName(), Context.MODE_PRIVATE);
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
 
-        if(overwrite)
-        {
-            if(note != null)
-            {
-                note.setLastModifiedDate(date);
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
-            if(note != null)
-            {
-                note.setCreationDate(date);
-            }
-            else
-            {
-                return false;
-            }
-        }
+                oos.writeObject(note);
 
-        try
-        {
-            FileOutputStream fos = context.openFileOutput(note.getFileName(), Context.MODE_PRIVATE);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-
-            oos.writeObject(note);
-
-            return true;
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         return false;
     }
-
-//    static void loadNotes(Context context, ArrayList<Note> notesList)
-//    {
-//        File dir = context.getFilesDir();
-//
-//        FilenameFilter filesFilter = new FilenameFilter()
-//        {
-//            public boolean accept(File dir, String name)
-//            {
-//                return name.endsWith(NOTE_FILE_EXTENSION);
-//            }
-//        };
-//
-//        File[] files = dir.listFiles(filesFilter);
-//        if(files.length != 0) {
-//
-//            int fileCount = 0;
-//
-//            try {
-//                FileInputStream fis;
-//                ObjectInputStream ois;
-//
-//                Log.d("UTILITIES_LOAD_NOTES", "Loading notes...");
-//
-//                for (File file : files)
-//                {
-//                    fileCount++;
-//
-//                    int progress = (fileCount * 100)/files.length;
-//
-//                    fis = context.openFileInput(file.getName());
-//                    ois = new ObjectInputStream(fis);
-//
-//                    Note note = (Note) ois.readObject();
-//                    //Log.d("Utilities-LOAD", note.getFileName());
-//
-//                    notesList.add(note);
-//                }
-//            } catch (IOException | ClassNotFoundException e) {
-//                e.printStackTrace();
-//            }
-//
-//            Log.d("UTILITIES_LOAD_NOTES", "Notes loaded from disk");
-//        }
-//    }
-
 
     static void deleteAllFiles(Context context)
     {
@@ -179,15 +95,14 @@ class Utilities {
         {
             tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
             tempNote.setFileName(generateUniqueFilename(NOTE_FILE_EXTENSION));
-            Utilities.saveFile(context, tempNote, false);
+            Utilities.saveFile(context, tempNote);
         }
     }
 
     static DateTime getCurrentDateTime()
     {
         Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
-        Date date = new Date();
-        calendar.setTime(date);
+        calendar.setTime(new Date());
 
         DateTime dateTime = new DateTime();
         dateTime.setSeconds(calendar.get(Calendar.SECOND));

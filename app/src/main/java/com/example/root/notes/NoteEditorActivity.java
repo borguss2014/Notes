@@ -17,7 +17,7 @@ import android.widget.Toast;
 import java.io.Serializable;
 import java.util.HashMap;
 
-public class NoteActivity extends AppCompatActivity {
+public class NoteEditorActivity extends AppCompatActivity {
 
     private EditText            mEditTextTitle;
     private DottedLineEditText  mDLEditTextContent;
@@ -39,34 +39,26 @@ public class NoteActivity extends AppCompatActivity {
         mEditTextTitle = (EditText) findViewById(R.id.note_et_title);
         mDLEditTextContent = (DottedLineEditText) findViewById(R.id.note_et_content);
 
-        Intent intent = getIntent();
-        HashMap<String, String> noteData = (HashMap<String, String>) intent.getSerializableExtra(Utilities.MAIN_DATA);
+        mReceivedNote = (Note) getIntent().getSerializableExtra(Utilities.MAIN_DATA);
 
-        if(noteData != null)
+        if(mReceivedNote != null)
         {
-            mEditTextTitle.setText(noteData.get(Utilities.TITLE));
-            mDLEditTextContent.setText(noteData.get(Utilities.CONTENT));
+            Log.d("NOTE_ACTIVITY", "NOT NEW NOTE");
+            mNewNote = false;
+
+            mEditTextTitle.setText(mReceivedNote.getTitle());
+            mDLEditTextContent.setText(mReceivedNote.getContent());
 
             enableEditText(mEditTextTitle, false);
             enableEditText(mDLEditTextContent, false);
-
-            mNewNote = false;
-
-//            MenuItem item = (MenuItem) findViewById(R.id.action_notes_save_note);
-//            item.setEnabled(false);
-
-            Note newNote = new Note();
-            newNote.setTitle(noteData.get(Utilities.TITLE));
-            newNote.setContent(noteData.get(Utilities.CONTENT));
-            newNote.setFileName(noteData.get(Utilities.FILENAME));
-            newNote.setCreationDate((DateTime) intent.getSerializableExtra(Utilities.CREATION_DATE));
-            newNote.setLastModifiedDate((DateTime) intent.getSerializableExtra(Utilities.MODIFIED_DATE));
-
-            mReceivedNote = newNote;
         }
         else
         {
+            Log.d("NOTE_ACTIVITY", "NEW NOTE");
             mNewNote = true;
+
+            mReceivedNote = new Note();
+            mReceivedNote.setFileName(Utilities.generateUniqueFilename(Utilities.NOTE_FILE_EXTENSION));
         }
 
         mEditTextTitle.addTextChangedListener(new TextWatcher() {
@@ -81,7 +73,7 @@ public class NoteActivity extends AppCompatActivity {
 
                 if(!mNewNote) {
                     Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
-                    if (notesComparison(mReceivedNote, currentContent)) {
+                    if (!mReceivedNote.isEqual(currentContent)) {
                         //Note altered
                         mNoteAltered = true;
                         invalidateOptionsMenu();
@@ -105,9 +97,10 @@ public class NoteActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.d("OnTextChanged", "Text changed content");
 
-                if(!mNewNote) { //If it's not a new note
+                if(!mNewNote)
+                {
                     Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
-                    if (notesComparison(mReceivedNote, currentContent)) {
+                    if (!mReceivedNote.isEqual(currentContent)) {
                         //Note altered
                         mNoteAltered = true;
                         invalidateOptionsMenu();
@@ -147,37 +140,42 @@ public class NoteActivity extends AppCompatActivity {
         {
             case R.id.action_notes_save_note:
             {
-                if(note_title.isEmpty() && note_content.isEmpty())
-                {
-                    Toast.makeText(getApplicationContext(), "Note empty ! Add content before saving",  Toast.LENGTH_SHORT).show();
-                    return true;
-                }
+                Log.d("NOTE_ACTIVITY", "SAVING NOTE");
+
+                DateTime currentDate = Utilities.getCurrentDateTime();
+
+                int resultCode;
 
                 if(note_title.isEmpty())
                 {
-                    Toast.makeText(getApplicationContext(), "Enter a title before saving",  Toast.LENGTH_SHORT).show();
-                    return true;
+                    mReceivedNote.setTitle("Untitled");
                 }
-                else if(note_content.isEmpty())
+                else
                 {
-                    Toast.makeText(getApplicationContext(), "Enter content before saving",  Toast.LENGTH_SHORT).show();
-                    return true;
+                    mReceivedNote.setTitle(note_title);
                 }
 
                 if(mNewNote)
                 {
-                    Note note = new Note(note_title, note_content);
-                    note.setFileName(Utilities.generateUniqueFilename(Utilities.NOTE_FILE_EXTENSION));
+                    mReceivedNote.setCreationDate(currentDate);
 
-                    saveNote(note, false);
+                    resultCode = Utilities.NEW_NOTE_ACTIVITY_RESULT;
                 }
                 else
                 {
-                    mReceivedNote.setTitle(mEditTextTitle.getText().toString());
-                    mReceivedNote.setContent(mDLEditTextContent.getText().toString());
+                    mReceivedNote.setLastModifiedDate(currentDate);
 
-                    saveNote(mReceivedNote, true);
+                    resultCode = Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT;
                 }
+
+                mReceivedNote.setContent(note_content);
+
+                Intent resultIntent = new Intent();
+
+                resultIntent.putExtra(Utilities.NOTE_FROM_EDITOR, mReceivedNote);
+
+                setResult(resultCode, resultIntent);
+
                 finish();
                 return true;
             }
@@ -192,7 +190,7 @@ public class NoteActivity extends AppCompatActivity {
             }
             case R.id.action_notes_delete_note:
             {
-                deleteNote();
+                setResult(Utilities.DELETE_NOTE_ACTIVITY_RESULT, new Intent());
 
                 finish();
                 return true;
@@ -227,27 +225,6 @@ public class NoteActivity extends AppCompatActivity {
         return super.onPrepareOptionsMenu(menu);
     }
 
-    private void saveNote(Note note, boolean overwrite)
-    {
-        Log.d("NoteActivity_SAVE_NOTE", "SAVING");
-
-        int resultCode;
-        Intent resultIntent = new Intent();
-
-        if(!overwrite)
-        {
-            resultCode = Utilities.NEW_NOTE_ACTIVITY_RESULT;
-            resultIntent.putExtra("NEW_NOTE", note);
-        }
-        else
-        {
-            resultCode = Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT;
-            resultIntent.putExtra("MODIFIED_NOTE", note);
-        }
-
-        setResult(resultCode, resultIntent);
-    }
-
     private void enableEditText(EditText edit, boolean isEnabled)
     {
         if(isEnabled)
@@ -259,34 +236,5 @@ public class NoteActivity extends AppCompatActivity {
             edit.setEnabled(false);
             edit.setTextColor(Color.argb(255, 0, 0, 0));
         }
-    }
-
-    private void deleteNote()
-    {
-        int resultCode;
-        Intent resultIntent = new Intent();
-
-        resultCode = Utilities.DELETE_NOTE_ACTIVITY_RESULT;
-
-        setResult(resultCode, resultIntent);
-    }
-
-    private boolean notesComparison(Note originalNote, Note newNote)
-    {
-        boolean altered = false;
-
-        //Title has changed
-        if(!originalNote.getTitle().equals(newNote.getTitle()))
-        {
-            altered = true;
-        }
-
-        //Content has changed
-        if(!originalNote.getContent().equals(newNote.getContent()))
-        {
-            altered = true;
-        }
-
-        return altered;
     }
 }

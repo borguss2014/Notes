@@ -1,6 +1,5 @@
 package com.example.root.notes;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -10,32 +9,37 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.ArrayList;
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 
 /**
  * Created by Spoiala Cristian on 6/2/2017.
  */
 
-public class LoadFilesTask extends AsyncTask<String, String, Void>{
+class LoadFilesTask extends AsyncTask<String, String, Void>
+{
 
-    private MainActivity mActivity;
+    private final WeakReference<MainActivity> mActivity;
+    private boolean mRunning;
 
     LoadFilesTask(MainActivity activity)
     {
-       mActivity = activity;
+       mActivity = new WeakReference<>(activity);
     }
 
     @Override
     protected void onPreExecute()
     {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+        mRunning = true;
     }
 
     @Override
-    protected Void doInBackground(String... params) {
+    protected Void doInBackground(String... params)
+    {
+        Context context = mActivity.get().getApplicationContext();
 
-        File dir = mActivity.getApplicationContext().getFilesDir();
+        File dir = context.getFilesDir();
 
         FilenameFilter filesFilter = new FilenameFilter()
         {
@@ -58,19 +62,26 @@ public class LoadFilesTask extends AsyncTask<String, String, Void>{
 
                 for (File file : files)
                 {
-                    fileCount++;
+                    if(mRunning)
+                    {
+                        fileCount++;
 
-                    int progress = (fileCount * 100)/files.length;
+                        int progress = (fileCount * 100)/files.length;
 
-                    fis = mActivity.getApplicationContext().openFileInput(file.getName());
-                    ois = new ObjectInputStream(fis);
+                        fis = context.openFileInput(file.getName());
+                        ois = new ObjectInputStream(fis);
 
-                    Note note = (Note) ois.readObject();
-                    Log.d("Utilities-LOAD", note.getFileName());
+                        Note note = (Note) ois.readObject();
+                        //Log.d("Utilities-LOAD", note.getFileName());
 
-                    mActivity.getNotes().add(note);
+                        mActivity.get().getNotes().add(note);
 
-                    publishProgress(Integer.toString(progress));
+                        publishProgress(Integer.toString(progress));
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -79,22 +90,31 @@ public class LoadFilesTask extends AsyncTask<String, String, Void>{
             Log.d("UTILITIES_LOAD_NOTES", "Notes loaded from disk");
         }
 
-        Collections.sort(mActivity.getNotes(), Comparison.getCurrentComparator());
+        Collections.sort(mActivity.get().getNotes(), Comparison.getCurrentComparator());
         return null;
     }
 
     @Override
-    protected void onProgressUpdate(String... values) {
+    protected void onProgressUpdate(String... values)
+    {
         super.onProgressUpdate(values);
 
         Log.d("UTILITIES_LOAD_NOTES", values[0]);
     }
 
     @Override
-    protected void onPostExecute(Void aVoid) {
+    protected void onCancelled() {
+        super.onCancelled();
+
+        mRunning = false;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid)
+    {
         super.onPostExecute(aVoid);
 
-        mActivity.getAdapter().notifyDataSetChanged();
-        mActivity.mListNotes.setAdapter(mActivity.getAdapter());
+        mActivity.get().getAdapter().notifyDataSetChanged();
+        //mActivity.get().getNotesView().setAdapter(mActivity.get().getAdapter());
     }
 }
