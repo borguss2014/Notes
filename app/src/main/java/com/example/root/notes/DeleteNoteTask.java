@@ -33,7 +33,7 @@ class DeleteNoteTask extends AsyncTask<String, String, Void>
 
         Handler handler = activity.getHandler();
 
-        if(activity.getCurrentlyClickedNote() != Utilities.NO_NOTE_CLICKED)
+        if(activity.getCurrentlyClickedNote() != Attributes.NO_NOTE_CLICKED)
         {
             Note toBeDeletedNote = activity.getNotes().get(activity.getCurrentlyClickedNote());
 
@@ -41,7 +41,7 @@ class DeleteNoteTask extends AsyncTask<String, String, Void>
             boolean isDeleted = Utilities.deleteFile(activity.getApplicationContext(), toBeDeletedNote.getFileName());
 
             Message message = handler.obtainMessage();
-            message.what = Utilities.HANDLER_MESSAGE_NOTE_DELETED;
+            message.what = Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_DELETED.getCode();
             message.obj = isDeleted;
 
             handler.sendMessage(message);

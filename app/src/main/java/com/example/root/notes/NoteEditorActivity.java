@@ -2,7 +2,6 @@ package com.example.root.notes;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -12,10 +11,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
-import android.widget.Toast;
-
-import java.io.Serializable;
-import java.util.HashMap;
 
 public class NoteEditorActivity extends AppCompatActivity {
 
@@ -29,7 +24,8 @@ public class NoteEditorActivity extends AppCompatActivity {
     private Note                mReceivedNote;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
 
@@ -39,7 +35,7 @@ public class NoteEditorActivity extends AppCompatActivity {
         mEditTextTitle = (EditText) findViewById(R.id.note_et_title);
         mDLEditTextContent = (DottedLineEditText) findViewById(R.id.note_et_content);
 
-        mReceivedNote = (Note) getIntent().getSerializableExtra(Utilities.MAIN_DATA);
+        mReceivedNote = (Note) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY.toString());
 
         if(mReceivedNote != null)
         {
@@ -58,7 +54,7 @@ public class NoteEditorActivity extends AppCompatActivity {
             mNewNote = true;
 
             mReceivedNote = new Note();
-            mReceivedNote.setFileName(Utilities.generateUniqueFilename(Utilities.NOTE_FILE_EXTENSION));
+            mReceivedNote.setFileName(Utilities.generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
         }
 
         mEditTextTitle.addTextChangedListener(new TextWatcher() {
@@ -116,6 +112,13 @@ public class NoteEditorActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         if(mNewNote)
@@ -159,20 +162,20 @@ public class NoteEditorActivity extends AppCompatActivity {
                 {
                     mReceivedNote.setCreationDate(currentDate);
 
-                    resultCode = Utilities.NEW_NOTE_ACTIVITY_RESULT;
+                    resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT.getCode();
                 }
                 else
                 {
                     mReceivedNote.setLastModifiedDate(currentDate);
 
-                    resultCode = Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT;
+                    resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT.getCode();
                 }
 
                 mReceivedNote.setContent(note_content);
 
                 Intent resultIntent = new Intent();
 
-                resultIntent.putExtra(Utilities.NOTE_FROM_EDITOR, mReceivedNote);
+                resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY.toString(), mReceivedNote);
 
                 setResult(resultCode, resultIntent);
 
@@ -190,7 +193,7 @@ public class NoteEditorActivity extends AppCompatActivity {
             }
             case R.id.action_notes_delete_note:
             {
-                setResult(Utilities.DELETE_NOTE_ACTIVITY_RESULT, new Intent());
+                setResult(Attributes.ActivityResultMessageType.DELETE_NOTE_ACTIVITY_RESULT.getCode(), new Intent());
 
                 finish();
                 return true;

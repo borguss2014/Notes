@@ -23,25 +23,6 @@ import java.util.UUID;
 
 class Utilities {
 
-    //bno : binary note
-    static final String NOTE_FILE_EXTENSION = ".bno";
-
-    static final String MAIN_DATA = "main_data";
-    static final String NOTE_FROM_EDITOR = "NOTE_FROM_EDITOR";
-
-    static final int NOTE_EDITOR_ACTIVITY = 1003;
-
-    static final int NEW_NOTE_ACTIVITY_RESULT = 1000;
-    static final int OVERWRITE_NOTE_ACTIVITY_RESULT = 1001;
-    static final int DELETE_NOTE_ACTIVITY_RESULT = 1002;
-
-    static final int NO_NOTE_CLICKED = 1004;
-
-    static final int HANDLER_MESSAGE_NOTE_ADDED = 1005;
-    static final int HANDLER_MESSAGE_NOTE_MODIFIED = 1006;
-    static final int HANDLER_MESSAGE_NOTE_DELETED = 1007;
-
-
     @TargetApi(Build.VERSION_CODES.N)
     static boolean saveFile(Context context, Note note)
     {
@@ -94,7 +75,7 @@ class Utilities {
         for(int i=0; i<nrNotes; i++)
         {
             tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
-            tempNote.setFileName(generateUniqueFilename(NOTE_FILE_EXTENSION));
+            tempNote.setFileName(generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
             Utilities.saveFile(context, tempNote);
         }
     }

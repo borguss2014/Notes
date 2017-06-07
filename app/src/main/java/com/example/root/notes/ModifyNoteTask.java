@@ -35,7 +35,7 @@ class ModifyNoteTask extends AsyncTask<String, String, Void>
 
         if(activity.getReceivedNote() != null)
         {
-            if(activity.getCurrentlyClickedNote() != Utilities.NO_NOTE_CLICKED)
+            if(activity.getCurrentlyClickedNote() != Attributes.NO_NOTE_CLICKED)
             {
                 activity.getNotes().remove(activity.getNotes().get(activity.getCurrentlyClickedNote()));
                 activity.getNotes().add(activity.getReceivedNote());
@@ -44,7 +44,7 @@ class ModifyNoteTask extends AsyncTask<String, String, Void>
 
                 Utilities.saveFile(activity.getApplicationContext(), activity.getReceivedNote());
 
-                handler.sendEmptyMessage(Utilities.HANDLER_MESSAGE_NOTE_MODIFIED);
+                handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_MODIFIED.getCode());
             }
         }
 

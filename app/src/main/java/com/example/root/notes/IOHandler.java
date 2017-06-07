@@ -22,13 +22,17 @@ class IOHandler extends Handler
 
     @Override
     public void handleMessage(Message msg) {
+        Log.d("HANDLER", "IN_HANDLER");
+
         MainActivity activity = mActivity.get();
 
         if(activity == null) return;
 
-        switch(msg.what)
+        Attributes.HandlerMessageType message = Attributes.HandlerMessageType.fromCode(msg.what);
+
+        switch(message)
         {
-            case Utilities.HANDLER_MESSAGE_NOTE_ADDED:
+            case HANDLER_MESSAGE_NOTE_ADDED:
             {
                 Log.d("HANDLER", "NEW NOTE ADDED");
 
@@ -36,14 +40,14 @@ class IOHandler extends Handler
                 activity.getAdapter().notifyDataSetChanged();
                 break;
             }
-            case Utilities.HANDLER_MESSAGE_NOTE_MODIFIED:
+            case HANDLER_MESSAGE_NOTE_MODIFIED:
             {
                 activity.setReceivedNote(null);
-                activity.setCurrentlyClickedNote(Utilities.NO_NOTE_CLICKED);
+                activity.setCurrentlyClickedNote(Attributes.NO_NOTE_CLICKED);
                 activity.getAdapter().notifyDataSetChanged();
                 break;
             }
-            case Utilities.HANDLER_MESSAGE_NOTE_DELETED:
+            case HANDLER_MESSAGE_NOTE_DELETED:
             {
                 boolean isDeleted = (boolean) msg.obj;
 
@@ -56,7 +60,7 @@ class IOHandler extends Handler
                     Toast.makeText(activity.getApplicationContext(), "An error occurred. Note couldn't be deleted" , Toast.LENGTH_SHORT).show();
                 }
 
-                activity.setCurrentlyClickedNote(Utilities.NO_NOTE_CLICKED);
+                activity.setCurrentlyClickedNote(Attributes.NO_NOTE_CLICKED);
                 activity.getAdapter().notifyDataSetChanged();
                 break;
             }

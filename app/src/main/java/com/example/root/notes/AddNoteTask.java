@@ -41,7 +41,7 @@ class AddNoteTask extends AsyncTask<String, String, Void>
 
             Utilities.saveFile(activity.getApplicationContext(), activity.getReceivedNote());
 
-            handler.sendEmptyMessage(Utilities.HANDLER_MESSAGE_NOTE_ADDED);
+            handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_ADDED.getCode());
         }
 
         return null;

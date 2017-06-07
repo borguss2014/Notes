@@ -45,16 +45,17 @@ class LoadFilesTask extends AsyncTask<String, String, Void>
         {
             public boolean accept(File dir, String name)
             {
-                return name.endsWith(Utilities.NOTE_FILE_EXTENSION);
+                return name.endsWith(Attributes.NOTE_FILE_EXTENSION);
             }
         };
 
         File[] files = dir.listFiles(filesFilter);
-        if(files.length != 0) {
-
+        if(files.length != 0)
+        {
             int fileCount = 0;
 
-            try {
+            try
+            {
                 FileInputStream fis;
                 ObjectInputStream ois;
 
@@ -83,7 +84,8 @@ class LoadFilesTask extends AsyncTask<String, String, Void>
                         break;
                     }
                 }
-            } catch (IOException | ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException e)
+            {
                 e.printStackTrace();
             }
 
@@ -103,7 +105,8 @@ class LoadFilesTask extends AsyncTask<String, String, Void>
     }
 
     @Override
-    protected void onCancelled() {
+    protected void onCancelled()
+    {
         super.onCancelled();
 
         mRunning = false;

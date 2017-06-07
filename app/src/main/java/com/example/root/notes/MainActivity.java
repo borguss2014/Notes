@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity
         mSelectedItems = new ArrayList<>();
         mSelectMode = false;
 
-        mClickedNotePosition = Utilities.NO_NOTE_CLICKED;
+        mClickedNotePosition = Attributes.NO_NOTE_CLICKED;
 
         Comparison.initComparators();
         Comparison.setCurrentComparator(Comparison.getCompareByTitle());
@@ -87,9 +87,9 @@ public class MainActivity extends AppCompatActivity
                     Log.d("MAIN CLICK MOD DATE", note.getLastModifiedDate().toString());
 
                     Intent modifyNoteIntent = new Intent(view.getContext(), NoteEditorActivity.class);
-                    modifyNoteIntent.putExtra(Utilities.MAIN_DATA, note);
+                    modifyNoteIntent.putExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY.toString(), note);
 
-                    startActivityForResult(modifyNoteIntent, Utilities.NOTE_EDITOR_ACTIVITY);
+                    startActivityForResult(modifyNoteIntent, Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY.getCode());
                 }
                 else
                 {
@@ -281,33 +281,37 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == Utilities.NOTE_EDITOR_ACTIVITY)
+        Attributes.ActivityMessageType reqCode = Attributes.ActivityMessageType.fromCode(requestCode);
+
+        if(reqCode == Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY && data != null)
         {
-            switch(resultCode)
+            Attributes.ActivityResultMessageType resCode = Attributes.ActivityResultMessageType.fromCode(resultCode);
+
+            switch(resCode)
             {
-                case Utilities.NEW_NOTE_ACTIVITY_RESULT:
+                case NEW_NOTE_ACTIVITY_RESULT:
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "New note result");
 
-                    mReceivedNote = (Note) data.getSerializableExtra("NOTE_FROM_EDITOR");
+                    mReceivedNote = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY.toString());
 
                     AddNoteTask addNote = new AddNoteTask(this);
                     addNote.execute();
 
                     break;
                 }
-                case Utilities.OVERWRITE_NOTE_ACTIVITY_RESULT:
+                case OVERWRITE_NOTE_ACTIVITY_RESULT:
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Overwrite note result");
 
-                    mReceivedNote = (Note) data.getSerializableExtra("NOTE_FROM_EDITOR");
+                    mReceivedNote = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY.toString());
 
                     ModifyNoteTask modifyNote = new ModifyNoteTask(this);
                     modifyNote.execute();
 
                     break;
                 }
-                case Utilities.DELETE_NOTE_ACTIVITY_RESULT:
+                case DELETE_NOTE_ACTIVITY_RESULT:
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Delete note result");
 
@@ -322,7 +326,7 @@ public class MainActivity extends AppCompatActivity
 
     private void createNote() {
         Intent createNoteIntent = new Intent(getApplicationContext(), NoteEditorActivity.class);
-        startActivityForResult(createNoteIntent, Utilities.NOTE_EDITOR_ACTIVITY);
+        startActivityForResult(createNoteIntent, Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY.getCode());
     }
 
     public static ArrayList<Integer> retrieveSelectedItems()
