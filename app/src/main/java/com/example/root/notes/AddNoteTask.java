@@ -13,9 +13,9 @@ import java.util.Collections;
 class AddNoteTask extends AsyncTask<String, String, Void>
 {
 
-    private final WeakReference<MainActivity> mActivity;
+    private final WeakReference<NotesView> mActivity;
 
-    AddNoteTask(MainActivity activity)
+    AddNoteTask(NotesView activity)
     {
         mActivity = new WeakReference<>(activity);
     }
@@ -29,7 +29,7 @@ class AddNoteTask extends AsyncTask<String, String, Void>
     @Override
     protected Void doInBackground(String... params)
     {
-        MainActivity activity = mActivity.get();
+        NotesView activity = mActivity.get();
 
         Handler handler = activity.getHandler();
 
@@ -39,9 +39,9 @@ class AddNoteTask extends AsyncTask<String, String, Void>
 
             Collections.sort(activity.getNotes(), Comparison.getCurrentComparator());
 
-            Utilities.saveFile(activity.getApplicationContext(), activity.getReceivedNote());
+            Utilities.saveFile(activity.getApplicationContext(), activity.getReceivedNote(), activity.getNotebookName());
 
-            handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_ADDED.getCode());
+            handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_ADDED);
         }
 
         return null;

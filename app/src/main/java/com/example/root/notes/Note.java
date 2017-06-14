@@ -6,8 +6,7 @@ import java.io.Serializable;
  * Created by ROOT on 3/21/2017.
  */
 
-public class Note implements Serializable{
-
+class Note implements Serializable{
     private String      mTitle, mContent;
 
     private String      mFileName;
@@ -15,8 +14,7 @@ public class Note implements Serializable{
     private DateTime    mCreationDate;
     private DateTime    mLastModifiedDate;
 
-
-    public Note()
+    Note()
     {
         mFileName   = "";
 
@@ -34,7 +32,7 @@ public class Note implements Serializable{
         mLastModifiedDate = new DateTime();
     }
 
-    public Note(String title, String content)
+    Note(String title, String content)
     {
         mTitle      = title;
         mContent    = content;

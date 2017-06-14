@@ -4,8 +4,11 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.text.ParseException;
@@ -24,11 +27,14 @@ import java.util.UUID;
 class Utilities {
 
     @TargetApi(Build.VERSION_CODES.N)
-    static boolean saveFile(Context context, Note note)
+    static boolean saveFile(Context context, Note note, String folderName)
     {
         if(note != null) {
             try {
-                FileOutputStream fos = context.openFileOutput(note.getFileName(), Context.MODE_PRIVATE);
+
+                File dir = new File(context.getFilesDir().toString().concat(File.separator.concat(folderName)));
+
+                FileOutputStream fos = new FileOutputStream(dir.toString().concat(File.separator.concat(note.getFileName())));
                 ObjectOutputStream oos = new ObjectOutputStream(fos);
 
                 oos.writeObject(note);
@@ -42,6 +48,23 @@ class Utilities {
         return false;
     }
 
+    static void createDirectory(Context context, String notebookName)
+    {
+        File folder = new File(context.getFilesDir() + File.separator + notebookName);
+
+        boolean success = true;
+        if (!folder.exists()) {
+            success = folder.mkdirs();
+        }
+        if (success) {
+            // Do something on success
+            Log.d("CREATE DIRECTORY", "FOLDER CREATED");
+        } else {
+            // Do something else on failure
+            Log.d("CREATE DIRECTORY", "FOLDER CREATION FAILED");
+        }
+    }
+
     static void deleteAllFiles(Context context)
     {
         File dir = context.getFilesDir();
@@ -52,11 +75,58 @@ class Utilities {
         }
     }
 
-    static boolean deleteFile(Context context, final String fileName)
+    static void deleteAllFolders(Context context)
     {
+        boolean deleted = true;
+        FilenameFilter filesFilter = new FilenameFilter()
+        {
+            public boolean accept(File file, String name)
+            {
+                return file.isDirectory();
+            }
+        };
+
         File dir = context.getFilesDir();
 
-        File file = new File(dir + "/" + fileName);
+        File[] folders = dir.listFiles(filesFilter);
+
+        for(File folder : folders)
+        {
+            String[] children = folder.list();
+            for (String child : children)
+            {
+                File file = new File(folder, child);
+
+                if(!file.delete())
+                {
+                    deleted = false;
+                }
+
+                if(!deleted)
+                {
+                    Log.d("DELETE_ALL_FOLDERS", "Warning: One or more files couldn't be deleted");
+                }
+
+                deleted = true;
+            }
+
+            if(!folder.delete())
+            {
+                deleted = false;
+            }
+        }
+
+        if(!deleted)
+        {
+            Log.d("DELETE_ALL_FOLDERS", "Warning: One or more folders couldn't be deleted");
+        }
+    }
+
+    static boolean deleteFile(Context context, final String fileName, String folderName)
+    {
+        File dir = new File(context.getFilesDir().toString().concat(File.separator.concat(folderName)));
+
+        File file = new File(dir.toString().concat(File.separator.concat(fileName)));
 
         if(file.exists())
         {
@@ -69,14 +139,14 @@ class Utilities {
         }
     }
 
-    static void createTestNotes(Context context, int nrNotes)
+    static void createTestNotes(Context context, int nrNotes, String folderName)
     {
         Note tempNote;
         for(int i=0; i<nrNotes; i++)
         {
             tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
             tempNote.setFileName(generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
-            Utilities.saveFile(context, tempNote);
+            Utilities.saveFile(context, tempNote, folderName);
         }
     }
 

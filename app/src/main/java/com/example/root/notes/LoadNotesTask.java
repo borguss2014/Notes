@@ -16,13 +16,13 @@ import java.util.Collections;
  * Created by Spoiala Cristian on 6/2/2017.
  */
 
-class LoadFilesTask extends AsyncTask<String, String, Void>
+class LoadNotesTask extends AsyncTask<String, String, Void>
 {
 
-    private final WeakReference<MainActivity> mActivity;
+    private final WeakReference<NotesView> mActivity;
     private boolean mRunning;
 
-    LoadFilesTask(MainActivity activity)
+    LoadNotesTask(NotesView activity)
     {
        mActivity = new WeakReference<>(activity);
     }
@@ -39,11 +39,13 @@ class LoadFilesTask extends AsyncTask<String, String, Void>
     {
         Context context = mActivity.get().getApplicationContext();
 
-        File dir = context.getFilesDir();
+        File dir = new File(context.getFilesDir().toString().concat(File.separator.concat(mActivity.get().getNotebookName())));
+
+        Log.d("LOAD_FILES_TASK", "Directory: " + dir.toString());
 
         FilenameFilter filesFilter = new FilenameFilter()
         {
-            public boolean accept(File dir, String name)
+            public boolean accept(File file, String name)
             {
                 return name.endsWith(Attributes.NOTE_FILE_EXTENSION);
             }
@@ -59,7 +61,7 @@ class LoadFilesTask extends AsyncTask<String, String, Void>
                 FileInputStream fis;
                 ObjectInputStream ois;
 
-                Log.d("UTILITIES_LOAD_NOTES", "Loading notes...");
+                Log.d("LOAD_FILES_TASK", "Loading notes...");
 
                 for (File file : files)
                 {
@@ -69,7 +71,8 @@ class LoadFilesTask extends AsyncTask<String, String, Void>
 
                         int progress = (fileCount * 100)/files.length;
 
-                        fis = context.openFileInput(file.getName());
+                        //fis = context.openFileInput(file.getPath());
+                        fis = new FileInputStream(file.getPath());
                         ois = new ObjectInputStream(fis);
 
                         Note note = (Note) ois.readObject();
@@ -89,7 +92,11 @@ class LoadFilesTask extends AsyncTask<String, String, Void>
                 e.printStackTrace();
             }
 
-            Log.d("UTILITIES_LOAD_NOTES", "Notes loaded from disk");
+            Log.d("LOAD_FILES_TASK", "Notes loaded from disk");
+        }
+        else
+        {
+            Log.d("LOAD_FILES_TASK", "No notes found");
         }
 
         Collections.sort(mActivity.get().getNotes(), Comparison.getCurrentComparator());

@@ -119,19 +119,23 @@ class Comparison {
         return mCurrent;
     }
 
-    static Comparator<Note> getCompareByFilename() {
+    static Comparator<Note> getCompareByFilename()
+    {
         return compareByFilename;
     }
 
-    public static Comparator<Note> getCompareByCreationDate() {
+    public static Comparator<Note> getCompareByCreationDate()
+    {
         return compareByCreationDate;
     }
 
-    public static Comparator<Note> getCompareByModificationDate() {
+    public static Comparator<Note> getCompareByModificationDate()
+    {
         return compareByModificationDate;
     }
 
-    static Comparator<Note> getCompareByTitle() {
+    static Comparator<Note> getCompareByTitle()
+    {
         return compareByTitle;
     }
 

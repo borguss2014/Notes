@@ -13,9 +13,9 @@ import java.lang.ref.WeakReference;
 class DeleteNoteTask extends AsyncTask<String, String, Void>
 {
 
-    private final WeakReference<MainActivity> mActivity;
+    private final WeakReference<NotesView> mActivity;
 
-    DeleteNoteTask(MainActivity activity)
+    DeleteNoteTask(NotesView activity)
     {
         mActivity = new WeakReference<>(activity);
     }
@@ -29,7 +29,7 @@ class DeleteNoteTask extends AsyncTask<String, String, Void>
     @Override
     protected Void doInBackground(String... params) {
 
-        MainActivity activity = mActivity.get();
+        NotesView activity = mActivity.get();
 
         Handler handler = activity.getHandler();
 
@@ -38,10 +38,10 @@ class DeleteNoteTask extends AsyncTask<String, String, Void>
             Note toBeDeletedNote = activity.getNotes().get(activity.getCurrentlyClickedNote());
 
             activity.getNotes().remove(toBeDeletedNote);
-            boolean isDeleted = Utilities.deleteFile(activity.getApplicationContext(), toBeDeletedNote.getFileName());
+            boolean isDeleted = Utilities.deleteFile(activity.getApplicationContext(), toBeDeletedNote.getFileName(), activity.getNotebookName());
 
             Message message = handler.obtainMessage();
-            message.what = Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_DELETED.getCode();
+            message.what = Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_DELETED;
             message.obj = isDeleted;
 
             handler.sendMessage(message);

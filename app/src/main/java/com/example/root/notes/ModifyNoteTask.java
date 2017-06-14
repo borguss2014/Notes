@@ -2,6 +2,7 @@ package com.example.root.notes;
 
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -13,9 +14,9 @@ import java.util.Collections;
 class ModifyNoteTask extends AsyncTask<String, String, Void>
 {
 
-    private final WeakReference<MainActivity> mActivity;
+    private final WeakReference<NotesView> mActivity;
 
-    ModifyNoteTask(MainActivity activity)
+    ModifyNoteTask(NotesView activity)
     {
         mActivity = new WeakReference<>(activity);
     }
@@ -27,9 +28,9 @@ class ModifyNoteTask extends AsyncTask<String, String, Void>
     }
 
     @Override
-    protected Void doInBackground(String... params) {
-
-        MainActivity activity = mActivity.get();
+    protected Void doInBackground(String... params)
+    {
+        NotesView activity = mActivity.get();
 
         Handler handler = activity.getHandler();
 
@@ -42,9 +43,9 @@ class ModifyNoteTask extends AsyncTask<String, String, Void>
 
                 Collections.sort(activity.getNotes(), Comparison.getCurrentComparator());
 
-                Utilities.saveFile(activity.getApplicationContext(), activity.getReceivedNote());
+                Utilities.saveFile(activity.getApplicationContext(), activity.getReceivedNote(), activity.getNotebookName());
 
-                handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_MODIFIED.getCode());
+                handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_MODIFIED);
             }
         }
 

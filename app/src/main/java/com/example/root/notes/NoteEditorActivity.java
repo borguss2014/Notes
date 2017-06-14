@@ -27,7 +27,7 @@ public class NoteEditorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_note);
+        setContentView(R.layout.activity_note_editor);
 
         mEdit = false;
         mNoteAltered = false;
@@ -162,20 +162,20 @@ public class NoteEditorActivity extends AppCompatActivity {
                 {
                     mReceivedNote.setCreationDate(currentDate);
 
-                    resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT.getCode();
+                    resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
                 }
                 else
                 {
                     mReceivedNote.setLastModifiedDate(currentDate);
 
-                    resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT.getCode();
+                    resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
                 }
 
                 mReceivedNote.setContent(note_content);
 
                 Intent resultIntent = new Intent();
 
-                resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY.toString(), mReceivedNote);
+                resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, mReceivedNote);
 
                 setResult(resultCode, resultIntent);
 
@@ -193,7 +193,7 @@ public class NoteEditorActivity extends AppCompatActivity {
             }
             case R.id.action_notes_delete_note:
             {
-                setResult(Attributes.ActivityResultMessageType.DELETE_NOTE_ACTIVITY_RESULT.getCode(), new Intent());
+                setResult(Attributes.ActivityResultMessageType.DELETE_NOTE_ACTIVITY_RESULT, new Intent());
 
                 finish();
                 return true;

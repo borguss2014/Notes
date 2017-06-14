@@ -13,9 +13,9 @@ import java.lang.ref.WeakReference;
 
 class IOHandler extends Handler
 {
-    private final WeakReference<MainActivity> mActivity;
+    private final WeakReference<NotesView> mActivity;
 
-    IOHandler(MainActivity activity)
+    IOHandler(NotesView activity)
     {
         mActivity = new WeakReference<>(activity);
     }
@@ -24,15 +24,13 @@ class IOHandler extends Handler
     public void handleMessage(Message msg) {
         Log.d("HANDLER", "IN_HANDLER");
 
-        MainActivity activity = mActivity.get();
+        NotesView activity = mActivity.get();
 
         if(activity == null) return;
 
-        Attributes.HandlerMessageType message = Attributes.HandlerMessageType.fromCode(msg.what);
-
-        switch(message)
+        switch(msg.what)
         {
-            case HANDLER_MESSAGE_NOTE_ADDED:
+            case Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_ADDED:
             {
                 Log.d("HANDLER", "NEW NOTE ADDED");
 
@@ -40,14 +38,14 @@ class IOHandler extends Handler
                 activity.getAdapter().notifyDataSetChanged();
                 break;
             }
-            case HANDLER_MESSAGE_NOTE_MODIFIED:
+            case Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_MODIFIED:
             {
                 activity.setReceivedNote(null);
                 activity.setCurrentlyClickedNote(Attributes.NO_NOTE_CLICKED);
                 activity.getAdapter().notifyDataSetChanged();
                 break;
             }
-            case HANDLER_MESSAGE_NOTE_DELETED:
+            case Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_DELETED:
             {
                 boolean isDeleted = (boolean) msg.obj;
 

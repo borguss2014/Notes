@@ -19,7 +19,7 @@ import java.util.List;
  * Created by ROOT on 3/21/2017.
  */
 
-class ViewHolder
+class ViewHolderNotes
 {
     TextView title;
     TextView content;
@@ -33,7 +33,7 @@ class ViewHolder
 
 class NotesAdapter extends ArrayAdapter<Note>{
 
-    private ViewHolder holder;
+    private ViewHolderNotes holder;
     private LayoutInflater inflater;
     private ArrayList<Integer> mSelectedItems;
     private final int WRAP_CONTENT_LENGTH = 35;
@@ -47,7 +47,7 @@ class NotesAdapter extends ArrayAdapter<Note>{
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent)
     {
-        mSelectedItems = MainActivity.retrieveSelectedItems();
+        mSelectedItems = NotesView.retrieveSelectedItems();
 
         if(inflater == null)
         {
@@ -57,7 +57,7 @@ class NotesAdapter extends ArrayAdapter<Note>{
         if (convertView == null)
         {
             convertView = inflater.inflate(R.layout.notes_adapter_row, null);
-            holder = new ViewHolder();
+            holder = new ViewHolderNotes();
 
             holder.title = (TextView) convertView.findViewById(R.id.adapter_notes_title);
             holder.content = (TextView) convertView.findViewById(R.id.adapter_notes_content);
@@ -71,7 +71,7 @@ class NotesAdapter extends ArrayAdapter<Note>{
         }
         else
         {
-            holder = (ViewHolder) convertView.getTag();
+            holder = (ViewHolderNotes) convertView.getTag();
         }
 
         Note note = getItem(position);
@@ -150,7 +150,7 @@ class NotesAdapter extends ArrayAdapter<Note>{
             holder.date.setTextColor(Color.GREEN);
         }
 
-        if(MainActivity.selectModeStatus())
+        if(NotesView.selectModeStatus())
         {
             if(mSelectedItems.contains(position))
             {
@@ -163,7 +163,7 @@ class NotesAdapter extends ArrayAdapter<Note>{
                 holder.photoLayout.setBackgroundColor(Color.WHITE);
             }
         }
-        else if(!MainActivity.selectModeStatus() && mSelectedItems.size() >= 0)
+        else if(!NotesView.selectModeStatus() && mSelectedItems.size() >= 0)
         {
             holder.titleContentLayout.setBackgroundColor(Color.WHITE);
             holder.photoLayout.setBackgroundColor(Color.WHITE);
