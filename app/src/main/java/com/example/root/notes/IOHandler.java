@@ -21,7 +21,8 @@ class IOHandler extends Handler
     }
 
     @Override
-    public void handleMessage(Message msg) {
+    public void handleMessage(Message msg)
+    {
         Log.d("HANDLER", "IN_HANDLER");
 
         NotesView activity = mActivity.get();

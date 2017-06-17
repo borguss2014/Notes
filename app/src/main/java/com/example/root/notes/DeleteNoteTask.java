@@ -4,7 +4,9 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
 /**
  * Created by Spoiala Cristian on 6/2/2017.
@@ -12,34 +14,44 @@ import java.lang.ref.WeakReference;
 
 class DeleteNoteTask extends AsyncTask<String, String, Void>
 {
+    private Handler         handler;
+    private String          notePath;
+    private ArrayList<Note> notesList;
+    private int             clickedNotePosition;
 
-    private final WeakReference<NotesView> mActivity;
-
-    DeleteNoteTask(NotesView activity)
+    DeleteNoteTask(String notePath, int clickedNotePosition)
     {
-        mActivity = new WeakReference<>(activity);
+        this.notePath               = notePath;
+        this.clickedNotePosition    = clickedNotePosition;
     }
 
     @Override
     protected void onPreExecute()
     {
+        //Set thread priority as background so it
+        // won't fight with the UI thread for resources
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
     }
 
     @Override
-    protected Void doInBackground(String... params) {
-
-        NotesView activity = mActivity.get();
-
-        Handler handler = activity.getHandler();
-
-        if(activity.getCurrentlyClickedNote() != Attributes.NO_NOTE_CLICKED)
+    protected Void doInBackground(String... params)
+    {
+        if(clickedNotePosition == Attributes.NO_NOTE_CLICKED)
         {
-            Note toBeDeletedNote = activity.getNotes().get(activity.getCurrentlyClickedNote());
+            return null;
+        }
 
-            activity.getNotes().remove(toBeDeletedNote);
-            boolean isDeleted = Utilities.deleteFile(activity.getApplicationContext(), toBeDeletedNote.getFileName(), activity.getNotebookName());
+        Note toBeDeletedNote = notesList.get(clickedNotePosition);
 
+        if(notesList != null)
+        {
+            notesList.remove(toBeDeletedNote);
+        }
+
+        boolean isDeleted = Utilities.deleteFile(notePath);
+
+        if(handler != null)
+        {
             Message message = handler.obtainMessage();
             message.what = Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_DELETED;
             message.obj = isDeleted;
@@ -48,5 +60,15 @@ class DeleteNoteTask extends AsyncTask<String, String, Void>
         }
 
         return null;
+    }
+
+    void setHandler(Handler handler)
+    {
+        this.handler = handler;
+    }
+
+    void setNotesList(ArrayList<Note> notesList)
+    {
+        this.notesList = notesList;
     }
 }

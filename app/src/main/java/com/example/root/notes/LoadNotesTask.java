@@ -10,6 +10,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 
 /**
@@ -18,30 +19,46 @@ import java.util.Collections;
 
 class LoadNotesTask extends AsyncTask<String, String, Void>
 {
+    private volatile boolean mRunning;
 
-    private final WeakReference<NotesView> mActivity;
-    private boolean mRunning;
+    private NotesAdapter        adapter;
+    private ArrayList<Note>     notesList;
+    private String              notebookPath;
 
-    LoadNotesTask(NotesView activity)
+    LoadNotesTask(String notebookPath)
     {
-       mActivity = new WeakReference<>(activity);
+       this.notebookPath = notebookPath;
     }
 
     @Override
     protected void onPreExecute()
     {
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
         mRunning = true;
+
+        //Set thread priority as background so it
+        // won't fight with the UI thread for resources
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
     }
 
     @Override
     protected Void doInBackground(String... params)
     {
-        Context context = mActivity.get().getApplicationContext();
+        if(notesList == null)
+        {
+            try
+            {
+                throw new Exception("Notes list not set");
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                return null;
+            }
+        }
 
-        File dir = new File(context.getFilesDir().toString().concat(File.separator.concat(mActivity.get().getNotebookName())));
+        File notebookDirectory = new File(notebookPath);
 
-        Log.d("LOAD_FILES_TASK", "Directory: " + dir.toString());
+        Log.d("LOAD_FILES_TASK", "Directory: " + notebookDirectory.toString());
 
         FilenameFilter filesFilter = new FilenameFilter()
         {
@@ -51,8 +68,20 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
             }
         };
 
-        File[] files = dir.listFiles(filesFilter);
-        if(files.length != 0)
+        File[] files = notebookDirectory.listFiles(filesFilter);
+
+        int nrOfFiles = 0;
+
+        try
+        {
+            nrOfFiles = files.length;
+        }
+        catch (NullPointerException e)
+        {
+            e.printStackTrace();
+        }
+
+        if(nrOfFiles != 0)
         {
             int fileCount = 0;
 
@@ -71,14 +100,13 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
 
                         int progress = (fileCount * 100)/files.length;
 
-                        //fis = context.openFileInput(file.getPath());
                         fis = new FileInputStream(file.getPath());
                         ois = new ObjectInputStream(fis);
 
                         Note note = (Note) ois.readObject();
                         //Log.d("Utilities-LOAD", note.getFileName());
 
-                        mActivity.get().getNotes().add(note);
+                        notesList.add(note);
 
                         publishProgress(Integer.toString(progress));
                     }
@@ -99,7 +127,7 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
             Log.d("LOAD_FILES_TASK", "No notes found");
         }
 
-        Collections.sort(mActivity.get().getNotes(), Comparison.getCurrentComparator());
+        Collections.sort(notesList, Comparison.getCurrentComparator());
         return null;
     }
 
@@ -124,7 +152,29 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
     {
         super.onPostExecute(aVoid);
 
-        mActivity.get().getAdapter().notifyDataSetChanged();
-        //mActivity.get().getNotesView().setAdapter(mActivity.get().getAdapter());
+        if(adapter == null)
+        {
+            try
+            {
+                throw new Exception("Adapter not set");
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
+    void setNotesAdapter(NotesAdapter adapter)
+    {
+        this.adapter = adapter;
+    }
+
+    void setNotesList(ArrayList<Note> notesList)
+    {
+        this.notesList = notesList;
     }
 }

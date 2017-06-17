@@ -12,7 +12,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 
 /**
@@ -89,7 +93,10 @@ class NotesAdapter extends ArrayAdapter<Note>{
 
             String date = "DATE PLACEHOLDER";
 
-            DateTime currentDate = Utilities.getCurrentDateTime();
+            Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
+            calendar.setTime(new Date());
+
+            DateTime currentDate = Utilities.getCurrentDateTime(calendar);
             DateTime creationDate = note.getCreationDate();
             DateTime modificationDate = note.getLastModifiedDate();
 

@@ -3,7 +3,11 @@ package com.example.root.notes;
 import android.os.AsyncTask;
 import android.os.Handler;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 
 /**
@@ -12,38 +16,67 @@ import java.util.Collections;
 
 class AddNoteTask extends AsyncTask<String, String, Void>
 {
+    private Note            note;
+    private Handler         handler;
+    private String          notePath;
+    private ArrayList<Note> notesList;
 
-    private final WeakReference<NotesView> mActivity;
-
-    AddNoteTask(NotesView activity)
+    AddNoteTask(Note note, String notePath)
     {
-        mActivity = new WeakReference<>(activity);
+        this.note       = note;
+        this.notePath   = notePath;
     }
 
     @Override
     protected void onPreExecute()
     {
+        //Set thread priority as background so it
+        // won't fight with the UI thread for resources
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
     }
 
     @Override
     protected Void doInBackground(String... params)
     {
-        NotesView activity = mActivity.get();
-
-        Handler handler = activity.getHandler();
-
-        if(activity.getReceivedNote() != null)
+        if(note == null)
         {
-            activity.getNotes().add(activity.getReceivedNote());
+            return null;
+        }
 
-            Collections.sort(activity.getNotes(), Comparison.getCurrentComparator());
+        if(notesList != null)
+        {
+            //Add the note to the adapter's list
+            //and resort the list with the current comparator
+            notesList.add(note);
+            Collections.sort(notesList, Comparison.getCurrentComparator());
+        }
 
-            Utilities.saveFile(activity.getApplicationContext(), activity.getReceivedNote(), activity.getNotebookName());
+        try
+        {
+            //Save the new note to persistent storage
+            Utilities.saveToFile(new FileOutputStream(notePath), note);
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
 
+        if(handler != null)
+        {
+            //Signal the handler that a note has been added
             handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_ADDED);
         }
 
         return null;
+    }
+
+    void setHandler(Handler handler)
+    {
+        this.handler = handler;
+    }
+
+    void setNotesList(ArrayList<Note> notesList)
+    {
+        this.notesList = notesList;
     }
 }

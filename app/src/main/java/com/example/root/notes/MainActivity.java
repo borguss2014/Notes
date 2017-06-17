@@ -1,6 +1,5 @@
 package com.example.root.notes;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -17,21 +16,20 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
 {
 
-    private ListView mNotebooksView;
-    private ArrayList<Notebook> mNotebooks;
-    private NotebooksAdapter mNotebooksViewAdapter;
-
-    private LoadNotebooksTask loadAllNotebooks;
-
     private WeakReference<MainActivity> context;
-
-    private String dialogText;
+    private String                      dialogText;
+    private ArrayList<Notebook>         mNotebooks;
+    private ListView                    mNotebooksView;
+    private String                      notebooksDirPath;
+    private LoadNotebooksTask           loadAllNotebooks;
+    private NotebooksAdapter            mNotebooksViewAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -41,9 +39,9 @@ public class MainActivity extends AppCompatActivity
 
         Log.d("DEBUG", "NOTEBOOKS_ON_CREATE");
 
-        context = new WeakReference<>(this);
+        notebooksDirPath = getApplicationContext().getFilesDir().toString();
 
-        loadAllNotebooks = new LoadNotebooksTask(this);
+        context = new WeakReference<>(this);
 
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
@@ -52,6 +50,10 @@ public class MainActivity extends AppCompatActivity
         mNotebooks = new ArrayList<>();
         mNotebooksViewAdapter = new NotebooksAdapter(context.get(), R.layout.notebooks_adapter_row, mNotebooks);
         mNotebooksView.setAdapter(mNotebooksViewAdapter);
+
+        loadAllNotebooks = new LoadNotebooksTask(notebooksDirPath);
+        loadAllNotebooks.setNotebooksList(mNotebooks);
+        loadAllNotebooks.setNotebooksAdapter(mNotebooksViewAdapter);
 
         mNotebooksView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
@@ -186,7 +188,12 @@ public class MainActivity extends AppCompatActivity
 
                 Notebook newNotebook = new Notebook(dialogText);
 
-                AddNotebookTask addNotebook = new AddNotebookTask(context.get(), newNotebook);
+                String notebookPath = notebooksDirPath.concat(File.separator.concat(newNotebook.getName()));
+
+                AddNotebookTask addNotebook = new AddNotebookTask(newNotebook, notebookPath);
+                addNotebook.setNotebooksList(mNotebooks);
+                addNotebook.setNotebooksAdapter(mNotebooksViewAdapter);
+
                 addNotebook.execute();
             }
         });

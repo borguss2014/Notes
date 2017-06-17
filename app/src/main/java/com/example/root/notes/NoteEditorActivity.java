@@ -12,6 +12,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+
 public class NoteEditorActivity extends AppCompatActivity {
 
     private EditText            mEditTextTitle;
@@ -145,7 +150,10 @@ public class NoteEditorActivity extends AppCompatActivity {
             {
                 Log.d("NOTE_ACTIVITY", "SAVING NOTE");
 
-                DateTime currentDate = Utilities.getCurrentDateTime();
+                Calendar calendar  = new GregorianCalendar(TimeZone.getDefault());
+                calendar.setTime(new Date());
+
+                DateTime currentDate = Utilities.getCurrentDateTime(calendar);
 
                 int resultCode;
 

@@ -2,9 +2,11 @@ package com.example.root.notes;
 
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.util.Log;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 
 /**
@@ -13,42 +15,71 @@ import java.util.Collections;
 
 class ModifyNoteTask extends AsyncTask<String, String, Void>
 {
+    private Note            note;
+    private Handler         handler;
+    private String          notePath;
+    private ArrayList<Note> notesList;
+    private int             clickedNotePosition;
 
-    private final WeakReference<NotesView> mActivity;
-
-    ModifyNoteTask(NotesView activity)
+    ModifyNoteTask(Note note, String notePath, int clickedNotePosition)
     {
-        mActivity = new WeakReference<>(activity);
+        this.note                   = note;
+        this.notePath               = notePath;
+        this.clickedNotePosition    = clickedNotePosition;
     }
 
     @Override
     protected void onPreExecute()
     {
+        //Set thread priority as background so it
+        // won't fight with the UI thread for resources
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
     }
 
     @Override
     protected Void doInBackground(String... params)
     {
-        NotesView activity = mActivity.get();
-
-        Handler handler = activity.getHandler();
-
-        if(activity.getReceivedNote() != null)
+        if(note == null || clickedNotePosition == Attributes.NO_NOTE_CLICKED)
         {
-            if(activity.getCurrentlyClickedNote() != Attributes.NO_NOTE_CLICKED)
-            {
-                activity.getNotes().remove(activity.getNotes().get(activity.getCurrentlyClickedNote()));
-                activity.getNotes().add(activity.getReceivedNote());
+            return null;
+        }
 
-                Collections.sort(activity.getNotes(), Comparison.getCurrentComparator());
+        if(notesList != null)
+        {
+            //Replace the currently clicked note with the modified note in the
+            //adapter's list and resort the list with the current comparator
+            notesList.remove(notesList.get(clickedNotePosition));
+            notesList.add(note);
 
-                Utilities.saveFile(activity.getApplicationContext(), activity.getReceivedNote(), activity.getNotebookName());
+            Collections.sort(notesList, Comparison.getCurrentComparator());
+        }
 
-                handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_MODIFIED);
-            }
+        try
+        {
+            //Save the modified note to persistent storage
+            Utilities.saveToFile(new FileOutputStream(notePath), note);
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+
+        if(handler != null)
+        {
+            //Signal the handler that a note has been modified
+            handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_MODIFIED);
         }
 
         return null;
+    }
+
+    void setHandler(Handler handler)
+    {
+        this.handler = handler;
+    }
+
+    void setNotesList(ArrayList<Note> notesList)
+    {
+        this.notesList = notesList;
     }
 }

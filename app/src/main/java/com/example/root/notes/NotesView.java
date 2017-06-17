@@ -13,41 +13,44 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class NotesView extends AppCompatActivity
 {
-    private ListView mNotesView;
+    private static boolean              mSelectMode;
+    private static ArrayList<Integer>   mSelectedItems;
+    private static int                  mClickedNotePosition;
 
-    private LoadNotesTask loadAllNotes;
+    private ArrayList<Note>             mNotes;
+    private ListView                    mNotesView;
+    private String                      notesDirPath;
+    private LoadNotesTask               loadAllNotes;
+    private Note                        mReceivedNote;
+    private String                      mNotebookName;
+    private NotesAdapter                mNotesViewAdapter;
 
-    private ArrayList<Note> mNotes;
-    private NotesAdapter mNotesViewAdapter;
+    private final IOHandler             mHandler = new IOHandler(this);
 
-    private static boolean mSelectMode;
-    private static ArrayList<Integer> mSelectedItems;
-
-    private static int mClickedNotePosition;
-
-    private Note mReceivedNote;
-
-    private String mNotebookName;
-
-    private final IOHandler mHandler = new IOHandler(this);
-
-    private Runnable createTestNotes = new Runnable() {
+    private Runnable createTestNotes = new Runnable()
+    {
         @Override
         public void run()
         {
-            Utilities.createTestNotes(getApplicationContext(), 15, mNotebookName);
+            try {
+                Utilities.createTestNotes(15, notesDirPath);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
     };
 
-@Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notes_list);
 
@@ -55,11 +58,11 @@ public class NotesView extends AppCompatActivity
 
         mNotebookName = getIntent().getStringExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY);
 
+        notesDirPath = getApplicationContext().getFilesDir().toString().concat(File.separator.concat(mNotebookName));
+
         //Utilities.deleteAllFiles(this);
 
         WeakReference<Context> context = new WeakReference<>(getApplicationContext());
-
-        loadAllNotes = new LoadNotesTask(this);
 
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
@@ -76,6 +79,10 @@ public class NotesView extends AppCompatActivity
         mNotes = new ArrayList<>();
         mNotesViewAdapter = new NotesAdapter(context.get(), R.layout.notes_adapter_row, mNotes);
         mNotesView.setAdapter(mNotesViewAdapter);
+
+        loadAllNotes = new LoadNotesTask(notesDirPath);
+        loadAllNotes.setNotesList(mNotes);
+        loadAllNotes.setNotesAdapter(mNotesViewAdapter);
 
         mNotesView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
@@ -245,7 +252,11 @@ public class NotesView extends AppCompatActivity
                 for(int pos = 0; pos< mSelectedItems.size(); pos++)
                 {
                     Note note = (Note) mNotesView.getItemAtPosition(mSelectedItems.get(pos));
-                    Utilities.deleteFile(getApplicationContext(), note.getFileName(), mNotebookName);
+
+                    String notePath = notesDirPath.concat(File.separator.concat(note.getFileName()));
+
+                    Utilities.deleteFile(notePath);
+
                     mNotes.remove(mNotes.indexOf(note));
 
                     for(int decrement = pos+1; decrement< mSelectedItems.size(); decrement++)
@@ -285,17 +296,27 @@ public class NotesView extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        String notePath = "";
+
         if(requestCode == Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY && data != null)
         {
+            mReceivedNote = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY);
+
+            if(mReceivedNote != null)
+            {
+                notePath = notesDirPath.concat(File.separator.concat(mReceivedNote.getFileName()));
+            }
+
             switch(resultCode)
             {
                 case Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT:
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "New note result");
 
-                    mReceivedNote = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY);
+                    AddNoteTask addNote = new AddNoteTask(mReceivedNote, notePath);
+                    addNote.setNotesList(mNotes);
+                    addNote.setHandler(mHandler);
 
-                    AddNoteTask addNote = new AddNoteTask(this);
                     addNote.execute();
 
                     break;
@@ -304,9 +325,10 @@ public class NotesView extends AppCompatActivity
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Overwrite note result");
 
-                    mReceivedNote = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY);
+                    ModifyNoteTask modifyNote = new ModifyNoteTask(mReceivedNote, notePath, mClickedNotePosition);
+                    modifyNote.setNotesList(mNotes);
+                    modifyNote.setHandler(mHandler);
 
-                    ModifyNoteTask modifyNote = new ModifyNoteTask(this);
                     modifyNote.execute();
 
                     break;
@@ -315,7 +337,14 @@ public class NotesView extends AppCompatActivity
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Delete note result");
 
-                    DeleteNoteTask deleteNote = new DeleteNoteTask(this);
+                    Note toBeDeletedNote = mNotes.get(mClickedNotePosition);
+
+                    notePath = notesDirPath.concat(File.separator.concat(toBeDeletedNote.getFileName()));
+
+                    DeleteNoteTask deleteNote = new DeleteNoteTask(notePath, mClickedNotePosition);
+                    deleteNote.setNotesList(mNotes);
+                    deleteNote.setHandler(mHandler);
+
                     deleteNote.execute();
 
                     break;

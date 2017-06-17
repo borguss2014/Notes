@@ -4,9 +4,9 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -15,8 +15,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 import java.util.UUID;
 
 
@@ -27,30 +25,31 @@ import java.util.UUID;
 class Utilities {
 
     @TargetApi(Build.VERSION_CODES.N)
-    static boolean saveFile(Context context, Note note, String folderName)
+    static boolean saveToFile(FileOutputStream fileOutputStream, Note note)
     {
-        if(note != null) {
-            try {
-
-                File dir = new File(context.getFilesDir().toString().concat(File.separator.concat(folderName)));
-
-                FileOutputStream fos = new FileOutputStream(dir.toString().concat(File.separator.concat(note.getFileName())));
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-
-                oos.writeObject(note);
-
-                return true;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (note == null)
+        {
+            return false;
         }
 
-        return false;
+        //Persist note data in a binary file
+        try
+        {
+            ObjectOutputStream oos = new ObjectOutputStream(fileOutputStream);
+
+            oos.writeObject(note);
+
+            return true;
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    static void createDirectory(Context context, String notebookName)
+    static void createDirectory(String folderPath)
     {
-        File folder = new File(context.getFilesDir() + File.separator + notebookName);
+        File folder = new File(folderPath);
 
         boolean success = true;
         if (!folder.exists()) {
@@ -122,11 +121,9 @@ class Utilities {
         }
     }
 
-    static boolean deleteFile(Context context, final String fileName, String folderName)
+    static boolean deleteFile(String filePath)
     {
-        File dir = new File(context.getFilesDir().toString().concat(File.separator.concat(folderName)));
-
-        File file = new File(dir.toString().concat(File.separator.concat(fileName)));
+        File file = new File(filePath);
 
         if(file.exists())
         {
@@ -139,22 +136,28 @@ class Utilities {
         }
     }
 
-    static void createTestNotes(Context context, int nrNotes, String folderName)
+    static void createTestNotes(int nrNotes, String notesDirPath) throws FileNotFoundException
     {
         Note tempNote;
+        FileOutputStream fileOutputStream;
+
         for(int i=0; i<nrNotes; i++)
         {
+            String noteUniqueFilename = generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION);
+
             tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
-            tempNote.setFileName(generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
-            Utilities.saveFile(context, tempNote, folderName);
+            tempNote.setFileName(noteUniqueFilename);
+
+            String noteFilePath = notesDirPath.concat(File.separator.concat(noteUniqueFilename));
+
+            fileOutputStream = new FileOutputStream(noteFilePath);
+
+            Utilities.saveToFile(fileOutputStream, tempNote);
         }
     }
 
-    static DateTime getCurrentDateTime()
+    static DateTime getCurrentDateTime(Calendar calendar)
     {
-        Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
-        calendar.setTime(new Date());
-
         DateTime dateTime = new DateTime();
         dateTime.setSeconds(calendar.get(Calendar.SECOND));
         dateTime.setMinute(calendar.get(Calendar.MINUTE));
