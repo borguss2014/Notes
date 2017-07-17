@@ -25,12 +25,11 @@ public class NotesView extends AppCompatActivity
     private static ArrayList<Integer>   mSelectedItems;
     private static int                  mClickedNotePosition;
 
-    private ArrayList<Note>             mNotes;
     private ListView                    mNotesView;
     private String                      notesDirPath;
     private LoadNotesTask               loadAllNotes;
     private Note                        mReceivedNote;
-    private String                      mNotebookName;
+    private Notebook                    mReceivedNotebook;
     private NotesAdapter                mNotesViewAdapter;
 
     private final IOHandler             mHandler = new IOHandler(this);
@@ -56,9 +55,9 @@ public class NotesView extends AppCompatActivity
 
         Log.d("DEBUG", "NOTES_ON_CREATE");
 
-        mNotebookName = getIntent().getStringExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY);
+        mReceivedNotebook = (Notebook) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY);
 
-        notesDirPath = getApplicationContext().getFilesDir().toString().concat(File.separator.concat(mNotebookName));
+        notesDirPath = getApplicationContext().getFilesDir().toString().concat(File.separator.concat(mReceivedNotebook.getName()));
 
         //Utilities.deleteAllFiles(this);
 
@@ -76,12 +75,11 @@ public class NotesView extends AppCompatActivity
         Comparison.setCurrentComparator(Comparison.getCompareByTitle());
         //Comparison.setOrderDescending();
 
-        mNotes = new ArrayList<>();
-        mNotesViewAdapter = new NotesAdapter(context.get(), R.layout.notes_adapter_row, mNotes);
+        mNotesViewAdapter = new NotesAdapter(context.get(), R.layout.notes_adapter_row, mReceivedNotebook.getNotes());
         mNotesView.setAdapter(mNotesViewAdapter);
 
-        loadAllNotes = new LoadNotesTask(notesDirPath);
-        loadAllNotes.setNotesList(mNotes);
+        loadAllNotes = new LoadNotesTask(1, 1, notesDirPath);
+        loadAllNotes.setNotesList(mReceivedNotebook.getNotes());
         loadAllNotes.setNotesAdapter(mNotesViewAdapter);
 
         mNotesView.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -136,6 +134,13 @@ public class NotesView extends AppCompatActivity
             }
         });
 
+        //        Log.d("MAX_NBR_HEIGHT", Integer.toString(mNotebooksView.getChildAt(0).getHeight()));
+//        Log.d("MAX_NBR_VIEW_HEIGHT", Integer.toString(mNotebooksView.getHeight()));
+//
+//        Log.d("MAX_NBR_POSSIBLE_ITEMS", Integer.toString(mNotebooksView.getHeight()/mNotebooksView.getChildAt(0).getHeight()));
+
+//        int listview_max_visible_items = mNotesView.getHeight() / mNotesView.getChildAt(0).getHeight();
+
         if(savedInstanceState != null)
         {
             Log.d("RESTORE_INSTANCE",  "Restoring notes array list ...");
@@ -146,7 +151,7 @@ public class NotesView extends AppCompatActivity
             {
                 for(int i=0; i<sz; i++)
                 {
-                    mNotes.add(((ArrayList<Note>) savedInstanceState.get("NOTES")).get(i));
+                    mReceivedNotebook.getNotes().add(((ArrayList<Note>) savedInstanceState.get("NOTES")).get(i));
                 }
             }
             catch(IndexOutOfBoundsException e)
@@ -171,8 +176,8 @@ public class NotesView extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putSerializable("NOTES", mNotes);
-        outState.putInt("SIZE", mNotes.size());
+        outState.putSerializable("NOTES", mReceivedNotebook.getNotes());
+        outState.putInt("SIZE", mReceivedNotebook.getNotes().size());
     }
 
     @Override
@@ -241,7 +246,7 @@ public class NotesView extends AppCompatActivity
                 return true;
             case R.id.action_main_purge:
                 Utilities.deleteAllFiles(getApplicationContext());
-                mNotes.clear();
+                mReceivedNotebook.getNotes().clear();
                 mNotesViewAdapter.notifyDataSetChanged();
                 Log.d("MAIN_ACTIVITY_PURGE", "Notes purged");
                 return true;
@@ -257,7 +262,7 @@ public class NotesView extends AppCompatActivity
 
                     Utilities.deleteFile(notePath);
 
-                    mNotes.remove(mNotes.indexOf(note));
+                    mReceivedNotebook.getNotes().remove(mReceivedNotebook.getNotes().indexOf(note));
 
                     for(int decrement = pos+1; decrement< mSelectedItems.size(); decrement++)
                     {
@@ -314,7 +319,7 @@ public class NotesView extends AppCompatActivity
                     Log.d("MAIN_ACTIVITY_RESULT", "New note result");
 
                     AddNoteTask addNote = new AddNoteTask(mReceivedNote, notePath);
-                    addNote.setNotesList(mNotes);
+                    addNote.setNotesList(mReceivedNotebook.getNotes());
                     addNote.setHandler(mHandler);
 
                     addNote.execute();
@@ -326,7 +331,7 @@ public class NotesView extends AppCompatActivity
                     Log.d("MAIN_ACTIVITY_RESULT", "Overwrite note result");
 
                     ModifyNoteTask modifyNote = new ModifyNoteTask(mReceivedNote, notePath, mClickedNotePosition);
-                    modifyNote.setNotesList(mNotes);
+                    modifyNote.setNotesList(mReceivedNotebook.getNotes());
                     modifyNote.setHandler(mHandler);
 
                     modifyNote.execute();
@@ -337,12 +342,12 @@ public class NotesView extends AppCompatActivity
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Delete note result");
 
-                    Note toBeDeletedNote = mNotes.get(mClickedNotePosition);
+                    Note toBeDeletedNote = mReceivedNotebook.getNotes().get(mClickedNotePosition);
 
                     notePath = notesDirPath.concat(File.separator.concat(toBeDeletedNote.getFileName()));
 
                     DeleteNoteTask deleteNote = new DeleteNoteTask(notePath, mClickedNotePosition);
-                    deleteNote.setNotesList(mNotes);
+                    deleteNote.setNotesList(mReceivedNotebook.getNotes());
                     deleteNote.setHandler(mHandler);
 
                     deleteNote.execute();
@@ -373,11 +378,6 @@ public class NotesView extends AppCompatActivity
         return mHandler;
     }
 
-    public ArrayList<Note> getNotes()
-    {
-        return mNotes;
-    }
-
     public int getCurrentlyClickedNote()
     {
         return mClickedNotePosition;
@@ -406,10 +406,5 @@ public class NotesView extends AppCompatActivity
     public ListView getNotesView()
     {
         return mNotesView;
-    }
-
-    public String getNotebookName()
-    {
-        return mNotebookName;
     }
 }

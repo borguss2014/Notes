@@ -12,13 +12,18 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -30,6 +35,8 @@ public class MainActivity extends AppCompatActivity
     private String                      notebooksDirPath;
     private LoadNotebooksTask           loadAllNotebooks;
     private NotebooksAdapter            mNotebooksViewAdapter;
+
+    private static ArrayList<Note> mNotesTemp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -48,6 +55,7 @@ public class MainActivity extends AppCompatActivity
         mNotebooksView = (ListView) findViewById(R.id.notebooks_list_view);
 
         mNotebooks = new ArrayList<>();
+
         mNotebooksViewAdapter = new NotebooksAdapter(context.get(), R.layout.notebooks_adapter_row, mNotebooks);
         mNotebooksView.setAdapter(mNotebooksViewAdapter);
 
@@ -62,8 +70,10 @@ public class MainActivity extends AppCompatActivity
             {
                 Notebook notebook = (Notebook) parent.getItemAtPosition(position);
 
+                setTempNotes(notebook.getNotes());
+
                 Intent notesView= new Intent(view.getContext(), NotesView.class);
-                notesView.putExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, notebook.getName());
+                notesView.putExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, notebook);
 
                 startActivityForResult(notesView, Attributes.ActivityMessageType.NOTES_LIST_ACTIVITY);
             }
@@ -75,6 +85,64 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
         });
+
+//        mNotebooksView.setOnScrollListener(new EndlessScrollListener()
+//        {
+//            @Override
+//            public void onLoadData()
+//            {
+//                final int[] done = {0};
+//                Runnable genDir = new Runnable()
+//                {
+//                    @Override
+//                    public void run()
+//                    {
+//                        try {
+//                            Thread.sleep(3000);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                        for(int i=0; i<5; i++)
+//                        {
+//                            Random random = new Random();
+//
+//                            Notebook newNotebook = new Notebook(Integer.toString(random.nextInt()));
+//                            String notebookPath = notebooksDirPath.concat(File.separator.concat(newNotebook.getName()));
+//
+//                            if(mNotebooks != null)
+//                            {
+//                                //Add notebook to the adapter list and resort
+//                                mNotebooks.add(newNotebook);
+//
+//                                Collections.sort(mNotebooks, new Comparator<Notebook>()
+//                                {
+//                                    @Override
+//                                    public int compare(Notebook o1, Notebook o2) {
+//                                        return o1.getName().compareTo(o2.getName());
+//                                    }
+//                                });
+//                            }
+//
+//                            //Save the notebook as a directory in persistent storage
+//                            Utilities.createDirectory(notebookPath);
+//                        }
+//                        done[0] = 1;
+//                    }
+//                };
+//
+//                Thread t = new Thread(genDir);
+//                t.setPriority(Thread.MIN_PRIORITY);
+//                t.start();
+//
+//                while(done[0] == 0)
+//                {
+//                }
+//                mNotebooksViewAdapter.notifyDataSetChanged();
+//
+//                Log.d("SCROLL_LISTENER", "FINISHED LOADING DATA");
+//            }
+//        });
 
         loadAllNotebooks.execute();
     }
@@ -217,5 +285,15 @@ public class MainActivity extends AppCompatActivity
     public NotebooksAdapter getNotebooksViewAdapter()
     {
         return mNotebooksViewAdapter;
+    }
+
+    public static void setTempNotes(ArrayList<Note> tempNotes)
+    {
+        mNotesTemp = tempNotes;
+    }
+
+    public static ArrayList<Note> getTempNotes()
+    {
+        return mNotesTemp;
     }
 }

@@ -1,6 +1,5 @@
 package com.example.root.notes;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -9,9 +8,10 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Created by Spoiala Cristian on 6/2/2017.
@@ -22,12 +22,16 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
     private volatile boolean mRunning;
 
     private NotesAdapter        adapter;
+    private int                 startPos;
+    private int                 nrOfItems;
     private ArrayList<Note>     notesList;
     private String              notebookPath;
 
-    LoadNotesTask(String notebookPath)
+    LoadNotesTask(int startPos, int nrOfItems, String notebookPath)
     {
-       this.notebookPath = notebookPath;
+        this.startPos       = startPos;
+        this.nrOfItems      = nrOfItems;
+        this.notebookPath   = notebookPath;
     }
 
     @Override
@@ -70,6 +74,14 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
 
         File[] files = notebookDirectory.listFiles(filesFilter);
 
+        Collections.sort(Arrays.asList(files), new Comparator<File>()
+        {
+            @Override
+            public int compare(File o1, File o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
         int nrOfFiles = 0;
 
         try
@@ -92,7 +104,8 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
 
                 Log.d("LOAD_FILES_TASK", "Loading notes...");
 
-                for (File file : files)
+                //for (File file : files)
+                for (int i=startPos; i<startPos+nrOfItems; i++)
                 {
                     if(mRunning)
                     {
@@ -100,7 +113,7 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
 
                         int progress = (fileCount * 100)/files.length;
 
-                        fis = new FileInputStream(file.getPath());
+                        fis = new FileInputStream(files[i].getPath());
                         ois = new ObjectInputStream(fis);
 
                         Note note = (Note) ois.readObject();
@@ -120,6 +133,8 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
                 e.printStackTrace();
             }
 
+            Collections.sort(notesList, Comparison.getCurrentComparator());
+
             Log.d("LOAD_FILES_TASK", "Notes loaded from disk");
         }
         else
@@ -127,7 +142,6 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
             Log.d("LOAD_FILES_TASK", "No notes found");
         }
 
-        Collections.sort(notesList, Comparison.getCurrentComparator());
         return null;
     }
 
