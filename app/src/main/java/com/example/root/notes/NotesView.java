@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,7 +27,7 @@ public class NotesView extends AppCompatActivity
     private static ArrayList<Integer>   mSelectedItems;
     private static int                  mClickedNotePosition;
 
-    private ListView                    mNotesView;
+    private RecyclerView                mNotesView;
     private String                      notesDirPath;
     private LoadNotesTask               loadAllNotes;
     private Note                        mReceivedNote;
@@ -55,9 +57,11 @@ public class NotesView extends AppCompatActivity
 
         Log.d("DEBUG", "NOTES_ON_CREATE");
 
-        mReceivedNotebook = (Notebook) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY);
+        mReceivedNotebook = (Notebook) getIntent()
+                .getSerializableExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY);
 
-        notesDirPath = getApplicationContext().getFilesDir().toString().concat(File.separator.concat(mReceivedNotebook.getName()));
+        notesDirPath = getApplicationContext().getFilesDir().toString()
+                .concat(File.separator.concat(mReceivedNotebook.getName()));
 
         //Utilities.deleteAllFiles(this);
 
@@ -65,7 +69,6 @@ public class NotesView extends AppCompatActivity
 
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
-        mNotesView = (ListView) findViewById(R.id.notes_list_view);
         mSelectedItems = new ArrayList<>();
         mSelectMode = false;
 
@@ -75,64 +78,78 @@ public class NotesView extends AppCompatActivity
         Comparison.setCurrentComparator(Comparison.getCompareByTitle());
         //Comparison.setOrderDescending();
 
-        mNotesViewAdapter = new NotesAdapter(context.get(), R.layout.notes_adapter_row, mReceivedNotebook.getNotes());
+        mNotesView = (RecyclerView) findViewById(R.id.notes_list_view);
+
+        mNotesViewAdapter = new NotesAdapter(mReceivedNotebook.getNotes());
         mNotesView.setAdapter(mNotesViewAdapter);
 
-        loadAllNotes = new LoadNotesTask(1, 1, notesDirPath);
+        mNotesView.setLayoutManager(new LinearLayoutManager(this));
+
+        loadAllNotes = new LoadNotesTask(0, 4, notesDirPath);
         loadAllNotes.setNotesList(mReceivedNotebook.getNotes());
         loadAllNotes.setNotesAdapter(mNotesViewAdapter);
 
-        mNotesView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        mNotesViewAdapter.setClickListener(new View.OnClickListener()
         {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onClick(View v)
+            {
+                //Currently clicked item
+                int item_position = mNotesView.indexOfChild(v);
+
                 if(!mSelectMode)
                 {
-                    mClickedNotePosition = position;
+                    mClickedNotePosition = item_position;
 
-                    Note note = (Note) parent.getItemAtPosition(position);
+                    Note note = (Note) mNotesViewAdapter.getItemAtPosition(item_position);
                     Log.d("NOTE ON CLICK", note.getFileName());
                     Log.d("NOTE CLICK CR DATE", note.getCreationDate().toString());
                     Log.d("NOTE CLICK MOD DATE", note.getLastModifiedDate().toString());
 
-                    Intent modifyNoteIntent = new Intent(view.getContext(), NoteEditorActivity.class);
+                    Intent modifyNoteIntent = new Intent(getApplicationContext(), NoteEditorActivity.class);
                     modifyNoteIntent.putExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY, note);
 
                     startActivityForResult(modifyNoteIntent, Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY);
                 }
                 else
                 {
-                    Log.d("Select mode click", Integer.toString(position));
-                    if(!mSelectedItems.contains(position))
+                    Log.d("Select mode click", Integer.toString(item_position));
+                    if(!mSelectedItems.contains(item_position))
                     {
-                        Log.d("Toggle item", "Item at position " + Integer.toString(position) + " selected");
-                        mSelectedItems.add(position);
+                        Log.d("Toggle item", "Item at position " + Integer.toString(item_position) + " selected");
+                        mSelectedItems.add(item_position);
                     }
                     else
                     {
-                        Log.d("Toggle item", "Item at position " + Integer.toString(position) + " deselected");
-                        mSelectedItems.remove(mSelectedItems.indexOf(position));
+                        Log.d("Toggle item", "Item at position " + Integer.toString(item_position) + " deselected");
+                        mSelectedItems.remove(mSelectedItems.indexOf(item_position));
                     }
                     mNotesViewAdapter.notifyDataSetChanged();
                 }
             }
         });
 
-        mNotesView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        mNotesViewAdapter.setLongClickListener(new View.OnLongClickListener()
+        {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            public boolean onLongClick(View v)
+            {
+                //Currently clicked item
+                int item_position = mNotesView.indexOfChild(v);
 
                 if(!mSelectMode)
                 {
-                    Log.d("Select mode long click", Integer.toString(position));
-                    mSelectedItems.add(position);
+                    Log.d("Select mode long click", Integer.toString(item_position));
+                    mSelectedItems.add(item_position);
                     mSelectMode = true;
                     invalidateOptionsMenu();
                     mNotesViewAdapter.notifyDataSetChanged();
                 }
-                return true;
+
+                return false;
             }
         });
+
 
         //        Log.d("MAX_NBR_HEIGHT", Integer.toString(mNotebooksView.getChildAt(0).getHeight()));
 //        Log.d("MAX_NBR_VIEW_HEIGHT", Integer.toString(mNotebooksView.getHeight()));
@@ -256,7 +273,7 @@ public class NotesView extends AppCompatActivity
 
                 for(int pos = 0; pos< mSelectedItems.size(); pos++)
                 {
-                    Note note = (Note) mNotesView.getItemAtPosition(mSelectedItems.get(pos));
+                    Note note = mNotesViewAdapter.getItemAtPosition(mSelectedItems.get(pos));
 
                     String notePath = notesDirPath.concat(File.separator.concat(note.getFileName()));
 
@@ -403,7 +420,7 @@ public class NotesView extends AppCompatActivity
         return mReceivedNote;
     }
 
-    public ListView getNotesView()
+    public RecyclerView getNotesView()
     {
         return mNotesView;
     }

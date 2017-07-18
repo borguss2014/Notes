@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity
     private LoadNotebooksTask           loadAllNotebooks;
     private NotebooksAdapter            mNotebooksViewAdapter;
 
-    private static ArrayList<Note> mNotesTemp;
+    //private static ArrayList<Note> mNotesTemp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity
             {
                 Notebook notebook = (Notebook) parent.getItemAtPosition(position);
 
-                setTempNotes(notebook.getNotes());
+                //setTempNotes(notebook.getNotes());
 
                 Intent notesView= new Intent(view.getContext(), NotesView.class);
                 notesView.putExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, notebook);
@@ -287,13 +287,13 @@ public class MainActivity extends AppCompatActivity
         return mNotebooksViewAdapter;
     }
 
-    public static void setTempNotes(ArrayList<Note> tempNotes)
-    {
-        mNotesTemp = tempNotes;
-    }
-
-    public static ArrayList<Note> getTempNotes()
-    {
-        return mNotesTemp;
-    }
+//    public static void setTempNotes(ArrayList<Note> tempNotes)
+//    {
+//        mNotesTemp = tempNotes;
+//    }
+//
+//    public static ArrayList<Note> getTempNotes()
+//    {
+//        return mNotesTemp;
+//    }
 }
