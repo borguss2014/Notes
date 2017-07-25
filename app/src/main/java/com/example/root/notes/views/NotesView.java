@@ -1,4 +1,4 @@
-package com.example.root.notes;
+package com.example.root.notes.views;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,8 +13,20 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
+
+import com.example.root.notes.util.Attributes;
+import com.example.root.notes.util.Comparison;
+import com.example.root.notes.functionality.IOHandler;
+import com.example.root.notes.Note;
+import com.example.root.notes.Notebook;
+import com.example.root.notes.functionality.NotesAdapter;
+import com.example.root.notes.R;
+import com.example.root.notes.util.Utilities;
+import com.example.root.notes.async_tasks.note.AddNoteFileTask;
+import com.example.root.notes.async_tasks.note.DeleteNoteTask;
+import com.example.root.notes.async_tasks.note.LoadNotesTask;
+import com.example.root.notes.async_tasks.note.ModifyNoteTask;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
@@ -34,7 +46,7 @@ public class NotesView extends AppCompatActivity
     private Notebook                    mReceivedNotebook;
     private NotesAdapter                mNotesViewAdapter;
 
-    private final IOHandler             mHandler = new IOHandler(this);
+    private final IOHandler mHandler = new IOHandler(this);
 
     private Runnable createTestNotes = new Runnable()
     {
@@ -101,12 +113,12 @@ public class NotesView extends AppCompatActivity
                 {
                     mClickedNotePosition = item_position;
 
-                    Note note = (Note) mNotesViewAdapter.getItemAtPosition(item_position);
+                    Note note = mNotesViewAdapter.getItemAtPosition(item_position);
                     Log.d("NOTE ON CLICK", note.getFileName());
                     Log.d("NOTE CLICK CR DATE", note.getCreationDate().toString());
                     Log.d("NOTE CLICK MOD DATE", note.getLastModifiedDate().toString());
 
-                    Intent modifyNoteIntent = new Intent(getApplicationContext(), NoteEditorActivity.class);
+                    Intent modifyNoteIntent = new Intent(getApplicationContext(), NoteEditorView.class);
                     modifyNoteIntent.putExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY, note);
 
                     startActivityForResult(modifyNoteIntent, Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY);
@@ -335,7 +347,7 @@ public class NotesView extends AppCompatActivity
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "New note result");
 
-                    AddNoteTask addNote = new AddNoteTask(mReceivedNote, notePath);
+                    AddNoteFileTask addNote = new AddNoteFileTask(mReceivedNote, notePath);
                     addNote.setNotesList(mReceivedNotebook.getNotes());
                     addNote.setHandler(mHandler);
 
@@ -376,7 +388,7 @@ public class NotesView extends AppCompatActivity
     }
 
     private void createNote() {
-        Intent createNoteIntent = new Intent(getApplicationContext(), NoteEditorActivity.class);
+        Intent createNoteIntent = new Intent(getApplicationContext(), NoteEditorView.class);
         startActivityForResult(createNoteIntent, Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY);
     }
 

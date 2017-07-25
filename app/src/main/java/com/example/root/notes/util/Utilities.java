@@ -1,9 +1,13 @@
-package com.example.root.notes;
+package com.example.root.notes.util;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
+
+import com.example.root.notes.DateTime;
+import com.example.root.notes.ElapsedTime;
+import com.example.root.notes.Note;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,13 +23,13 @@ import java.util.UUID;
 
 
 /**
- * Created by Spoiala Cristian on 3/21/2017.
+ * TODO: Add a class header comment!
  */
 
-class Utilities {
+public class Utilities {
 
     @TargetApi(Build.VERSION_CODES.N)
-    static boolean saveToFile(FileOutputStream fileOutputStream, Note note)
+    public static boolean saveToFile(FileOutputStream fileOutputStream, Note note)
     {
         if (note == null)
         {
@@ -47,7 +51,7 @@ class Utilities {
         }
     }
 
-    static void createDirectory(String folderPath)
+    public static void createDirectory(String folderPath)
     {
         File folder = new File(folderPath);
 
@@ -56,15 +60,13 @@ class Utilities {
             success = folder.mkdirs();
         }
         if (success) {
-            // Do something on success
             Log.d("CREATE DIRECTORY", "FOLDER CREATED");
         } else {
-            // Do something else on failure
             Log.d("CREATE DIRECTORY", "FOLDER CREATION FAILED");
         }
     }
 
-    static void deleteAllFiles(Context context)
+    public static void deleteAllFiles(Context context)
     {
         File dir = context.getFilesDir();
 
@@ -74,7 +76,7 @@ class Utilities {
         }
     }
 
-    static void deleteAllFolders(Context context)
+    public static void deleteAllFolders(Context context)
     {
         boolean deleted = true;
         FilenameFilter filesFilter = new FilenameFilter()
@@ -121,7 +123,7 @@ class Utilities {
         }
     }
 
-    static boolean deleteFile(String filePath)
+    public static boolean deleteFile(String filePath)
     {
         File file = new File(filePath);
 
@@ -136,7 +138,7 @@ class Utilities {
         }
     }
 
-    static void createTestNotes(int nrNotes, String notesDirPath) throws FileNotFoundException
+    public static void createTestNotes(int nrNotes, String notesDirPath) throws FileNotFoundException
     {
         Note tempNote;
         FileOutputStream fileOutputStream;
@@ -156,7 +158,7 @@ class Utilities {
         }
     }
 
-    static DateTime getCurrentDateTime(Calendar calendar)
+    public static DateTime getCurrentDateTime(Calendar calendar)
     {
         DateTime dateTime = new DateTime();
         dateTime.setSeconds(calendar.get(Calendar.SECOND));
@@ -170,7 +172,7 @@ class Utilities {
         return dateTime;
     }
 
-    static ElapsedTime elapsedTime(String d1,String d2)
+    public static ElapsedTime elapsedTime(String d1, String d2)
     {
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
@@ -215,7 +217,7 @@ class Utilities {
                 elapsedMinutes, elapsedSeconds);
     }
 
-    static String generateUniqueFilename(String extension)
+    public static String generateUniqueFilename(String extension)
     {
         return UUID.randomUUID().toString() + extension;
     }

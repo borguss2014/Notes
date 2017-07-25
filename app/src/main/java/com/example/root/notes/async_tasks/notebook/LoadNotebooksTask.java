@@ -1,30 +1,30 @@
-package com.example.root.notes;
+package com.example.root.notes.async_tasks.notebook;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.root.notes.Notebook;
+import com.example.root.notes.functionality.NotebooksAdapter;
+
 import java.io.File;
 import java.io.FilenameFilter;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * Created by Spoiala Cristian on 6/10/2017.
+ * TODO: Add a class header comment!
  */
 
-class LoadNotebooksTask extends AsyncTask<String, String, Void>
+public class LoadNotebooksTask extends AsyncTask<String, String, Void>
 {
     private volatile boolean mRunning;
 
-    private NotebooksAdapter    adapter;
+    private NotebooksAdapter adapter;
     private String              notebooksPath;
     private ArrayList<Notebook> notebooksList;
 
-    LoadNotebooksTask(String notebooksPath)
+    public LoadNotebooksTask(String notebooksPath)
     {
         this.notebooksPath = notebooksPath;
     }
@@ -119,12 +119,12 @@ class LoadNotebooksTask extends AsyncTask<String, String, Void>
         adapter.notifyDataSetChanged();
     }
 
-    void setNotebooksAdapter(NotebooksAdapter adapter)
+    public void setNotebooksAdapter(NotebooksAdapter adapter)
     {
         this.adapter = adapter;
     }
 
-    void setNotebooksList(ArrayList<Notebook> notebooksList)
+    public void setNotebooksList(ArrayList<Notebook> notebooksList)
     {
         this.notebooksList = notebooksList;
     }

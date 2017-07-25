@@ -3,18 +3,19 @@ package com.example.root.notes;
 import java.io.Serializable;
 
 /**
- * Created by ROOT on 3/21/2017.
+ * TODO: Add a class header comment!
  */
 
-class Note implements Serializable{
+public class Note implements Serializable
+{
     private String      mTitle, mContent;
 
     private String      mFileName;
 
-    private DateTime    mCreationDate;
+    private DateTime mCreationDate;
     private DateTime    mLastModifiedDate;
 
-    Note()
+    public Note()
     {
         mFileName   = "";
 
@@ -32,7 +33,7 @@ class Note implements Serializable{
         mLastModifiedDate = new DateTime();
     }
 
-    Note(String title, String content)
+    public Note(String title, String content)
     {
         mTitle      = title;
         mContent    = content;
@@ -50,45 +51,45 @@ class Note implements Serializable{
         this.mTitle = mTitle;
     }
 
-    String getContent() {
+    public String getContent() {
         return mContent;
     }
 
-    void setContent(String mContent) {
+    public void setContent(String mContent) {
         this.mContent = mContent;
     }
 
-    String getFileName()
+    public String getFileName()
     {
         return mFileName;
     }
 
-    void setFileName(String filename)
+    public void setFileName(String filename)
     {
         mFileName = filename;
     }
 
-    void setCreationDate(DateTime cDate)
+    public void setCreationDate(DateTime cDate)
     {
         mCreationDate = cDate;
     }
 
-    DateTime getCreationDate()
+    public DateTime getCreationDate()
     {
         return mCreationDate;
     }
 
-    void setLastModifiedDate(DateTime mDate)
+    public void setLastModifiedDate(DateTime mDate)
     {
         mLastModifiedDate = mDate;
     }
 
-    DateTime getLastModifiedDate()
+    public DateTime getLastModifiedDate()
     {
         return mLastModifiedDate;
     }
 
-    boolean isEqual(Note note)
+    public boolean isEqual(Note note)
     {
         return mTitle.equals(note.getTitle()) && mContent.equals(note.getContent());
     }

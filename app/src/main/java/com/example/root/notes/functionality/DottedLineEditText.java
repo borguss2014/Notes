@@ -1,4 +1,4 @@
-package com.example.root.notes;
+package com.example.root.notes.functionality;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -10,7 +10,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 /**
- * Created by ROOT on 3/23/2017.
+ * TODO: Add a class header comment!
  */
 
 public class DottedLineEditText extends AppCompatEditText{

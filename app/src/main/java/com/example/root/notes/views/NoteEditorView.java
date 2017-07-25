@@ -1,4 +1,4 @@
-package com.example.root.notes;
+package com.example.root.notes.views;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -12,21 +12,28 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import com.example.root.notes.util.Attributes;
+import com.example.root.notes.DateTime;
+import com.example.root.notes.functionality.DottedLineEditText;
+import com.example.root.notes.Note;
+import com.example.root.notes.R;
+import com.example.root.notes.util.Utilities;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-public class NoteEditorActivity extends AppCompatActivity {
+public class NoteEditorView extends AppCompatActivity {
 
     private EditText            mEditTextTitle;
-    private DottedLineEditText  mDLEditTextContent;
+    private DottedLineEditText mDLEditTextContent;
 
     private boolean             mEdit;
     private boolean             mNewNote;
     private boolean             mNoteAltered;
 
-    private Note                mReceivedNote;
+    private Note mReceivedNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -40,7 +47,7 @@ public class NoteEditorActivity extends AppCompatActivity {
         mEditTextTitle = (EditText) findViewById(R.id.note_et_title);
         mDLEditTextContent = (DottedLineEditText) findViewById(R.id.note_et_content);
 
-        mReceivedNote = (Note) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY.toString());
+        mReceivedNote = (Note) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY);
 
         if(mReceivedNote != null)
         {

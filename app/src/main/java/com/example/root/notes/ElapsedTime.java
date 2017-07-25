@@ -1,16 +1,16 @@
 package com.example.root.notes;
 
 /**
- * Created by ROOT on 5/28/2017.
+ * TODO: Add a class header comment!
  */
 
-class ElapsedTime {
+public class ElapsedTime {
     private long elapsedDays;
     private long elapsedHours;
     private long elapsedMinutes;
     private long elapsedSeconds;
 
-    ElapsedTime(long days, long hours, long minutes, long seconds)
+    public ElapsedTime(long days, long hours, long minutes, long seconds)
     {
         elapsedDays = days;
         elapsedHours = hours;
@@ -18,7 +18,7 @@ class ElapsedTime {
         elapsedSeconds = seconds;
     }
 
-    long getElapsedDays() {
+    public long getElapsedDays() {
         return elapsedDays;
     }
 
@@ -26,7 +26,7 @@ class ElapsedTime {
         this.elapsedDays = elapsedDays;
     }
 
-    long getElapsedHours() {
+    public long getElapsedHours() {
         return elapsedHours;
     }
 
@@ -34,7 +34,7 @@ class ElapsedTime {
         this.elapsedHours = elapsedHours;
     }
 
-    long getElapsedMinutes() {
+    public long getElapsedMinutes() {
         return elapsedMinutes;
     }
 
@@ -42,7 +42,7 @@ class ElapsedTime {
         this.elapsedMinutes = elapsedMinutes;
     }
 
-    long getElapsedSeconds() {
+    public long getElapsedSeconds() {
         return elapsedSeconds;
     }
 
@@ -50,17 +50,17 @@ class ElapsedTime {
         this.elapsedSeconds = elapsedSeconds;
     }
 
-    boolean isOneMinuteElapsed()
+    public boolean isOneMinuteElapsed()
     {
         return !(elapsedSeconds < 60 && elapsedMinutes == 0 && elapsedHours == 0 && elapsedDays == 0);
     }
 
-    boolean isOneHourElapsed()
+    public boolean isOneHourElapsed()
     {
         return !(elapsedMinutes < 60 && elapsedHours == 0 && elapsedDays == 0);
     }
 
-    boolean isOneDayElapsed()
+    public boolean isOneDayElapsed()
     {
         return !(elapsedHours < 24 && elapsedDays == 0);
     }

@@ -1,4 +1,4 @@
-package com.example.root.notes;
+package com.example.root.notes.functionality;
 
 import android.content.Context;
 import android.support.annotation.LayoutRes;
@@ -11,10 +11,13 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.root.notes.Notebook;
+import com.example.root.notes.R;
+
 import java.util.List;
 
 /**
- * Created by Spoiala Cristian on 6/9/2017.
+ * TODO: Add a class header comment!
  */
 
 class ViewHolderNotebooks
@@ -26,12 +29,12 @@ class ViewHolderNotebooks
     LinearLayout parentLayout;
 }
 
-class NotebooksAdapter extends ArrayAdapter<Notebook> {
+public class NotebooksAdapter extends ArrayAdapter<Notebook> {
 
     private ViewHolderNotebooks holder;
     private LayoutInflater inflater;
 
-    NotebooksAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Notebook> objects)
+    public NotebooksAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<Notebook> objects)
     {
         super(context, resource, objects);
     }

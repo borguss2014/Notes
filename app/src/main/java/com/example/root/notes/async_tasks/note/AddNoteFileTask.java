@@ -1,31 +1,33 @@
-package com.example.root.notes;
+package com.example.root.notes.async_tasks.note;
 
 import android.os.AsyncTask;
 import android.os.Handler;
 
+import com.example.root.notes.util.Attributes;
+import com.example.root.notes.util.Comparison;
+import com.example.root.notes.Note;
+import com.example.root.notes.util.Utilities;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * Created by Spoiala Cristian on 6/2/2017.
+ * TODO: Add a class header comment!
  */
 
-class ModifyNoteTask extends AsyncTask<String, String, Void>
+public class AddNoteFileTask extends AsyncTask<String, String, Void>
 {
-    private Note            note;
+    private Note note;
     private Handler         handler;
     private String          notePath;
     private ArrayList<Note> notesList;
-    private int             clickedNotePosition;
 
-    ModifyNoteTask(Note note, String notePath, int clickedNotePosition)
+    public AddNoteFileTask(Note note, String notePath)
     {
-        this.note                   = note;
-        this.notePath               = notePath;
-        this.clickedNotePosition    = clickedNotePosition;
+        this.note       = note;
+        this.notePath   = notePath;
     }
 
     @Override
@@ -39,24 +41,22 @@ class ModifyNoteTask extends AsyncTask<String, String, Void>
     @Override
     protected Void doInBackground(String... params)
     {
-        if(note == null || clickedNotePosition == Attributes.NO_NOTE_CLICKED)
+        if(note == null)
         {
             return null;
         }
 
         if(notesList != null)
         {
-            //Replace the currently clicked note with the modified note in the
-            //adapter's list and resort the list with the current comparator
-            notesList.remove(notesList.get(clickedNotePosition));
+            //Add the note to the adapter's list
+            //and resort the list with the current comparator
             notesList.add(note);
-
             Collections.sort(notesList, Comparison.getCurrentComparator());
         }
 
         try
         {
-            //Save the modified note to persistent storage
+            //Save the new note to persistent storage
             Utilities.saveToFile(new FileOutputStream(notePath), note);
         }
         catch (FileNotFoundException e)
@@ -66,19 +66,19 @@ class ModifyNoteTask extends AsyncTask<String, String, Void>
 
         if(handler != null)
         {
-            //Signal the handler that a note has been modified
-            handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_MODIFIED);
+            //Signal the handler that a note has been added
+            handler.sendEmptyMessage(Attributes.HandlerMessageType.HANDLER_MESSAGE_NOTE_ADDED);
         }
 
         return null;
     }
 
-    void setHandler(Handler handler)
+    public void setHandler(Handler handler)
     {
         this.handler = handler;
     }
 
-    void setNotesList(ArrayList<Note> notesList)
+    public void setNotesList(ArrayList<Note> notesList)
     {
         this.notesList = notesList;
     }

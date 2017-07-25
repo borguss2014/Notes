@@ -1,7 +1,12 @@
-package com.example.root.notes;
+package com.example.root.notes.async_tasks.note;
 
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.example.root.notes.util.Attributes;
+import com.example.root.notes.util.Comparison;
+import com.example.root.notes.Note;
+import com.example.root.notes.functionality.NotesAdapter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,20 +19,20 @@ import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * Created by Spoiala Cristian on 6/2/2017.
+ * TODO: Add a class header comment!
  */
 
-class LoadNotesTask extends AsyncTask<String, String, Void>
+public class LoadNotesTask extends AsyncTask<String, String, Void>
 {
     private volatile boolean mRunning;
 
-    private NotesAdapter        adapter;
+    private NotesAdapter adapter;
     private int                 startPos;
     private int                 nrOfItems;
     private ArrayList<Note>     notesList;
     private String              notebookPath;
 
-    LoadNotesTask(int startPos, int nrOfItems, String notebookPath)
+    public LoadNotesTask(int startPos, int nrOfItems, String notebookPath)
     {
         this.startPos       = startPos;
         this.nrOfItems      = nrOfItems;
@@ -182,12 +187,12 @@ class LoadNotesTask extends AsyncTask<String, String, Void>
         adapter.notifyDataSetChanged();
     }
 
-    void setNotesAdapter(NotesAdapter adapter)
+    public void setNotesAdapter(NotesAdapter adapter)
     {
         this.adapter = adapter;
     }
 
-    void setNotesList(ArrayList<Note> notesList)
+    public void setNotesList(ArrayList<Note> notesList)
     {
         this.notesList = notesList;
     }

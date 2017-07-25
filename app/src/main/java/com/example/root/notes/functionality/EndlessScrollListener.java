@@ -1,11 +1,11 @@
-package com.example.root.notes;
+package com.example.root.notes.functionality;
 
 import android.util.Log;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
 /**
- * Created by Spoiala Cristian on 7/17/2017.
+ * TODO: Add a class header comment!
  */
 
 public abstract class EndlessScrollListener implements ListView.OnScrollListener

@@ -1,21 +1,24 @@
-package com.example.root.notes;
+package com.example.root.notes.functionality;
 
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.root.notes.util.Attributes;
+import com.example.root.notes.views.NotesView;
+
 import java.lang.ref.WeakReference;
 
 /**
- * Created by Spoiala Cristian on 6/5/2017.
+ * TODO: Add a class header comment!
  */
 
-class IOHandler extends Handler
+public class IOHandler extends Handler
 {
     private final WeakReference<NotesView> mActivity;
 
-    IOHandler(NotesView activity)
+    public IOHandler(NotesView activity)
     {
         mActivity = new WeakReference<>(activity);
     }

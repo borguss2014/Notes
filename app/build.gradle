@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 
+def daggerVersion = '2.11'
+
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
@@ -28,4 +30,10 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:recyclerview-v7:25.3.1'
+
+    /**
+     * Dagger
+    */
+    annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion"
+    compile "com.google.dagger:dagger:$daggerVersion"
 }

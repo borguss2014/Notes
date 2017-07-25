@@ -1,4 +1,6 @@
-package com.example.root.notes;
+package com.example.root.notes.util;
+
+import com.example.root.notes.Note;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -6,11 +8,11 @@ import java.util.Comparator;
 import java.util.Date;
 
 /**
- * Created by Spoiala Cristian on 5/30/2017.
+ * TODO: Add a class header comment!
  */
 
-class Comparison {
-
+public class Comparison
+{
     private static Comparator<Note> compareByFilename;
     private static Comparator<Note> compareByCreationDate;
     private static Comparator<Note> compareByModificationDate;
@@ -19,7 +21,8 @@ class Comparison {
     private static Comparator<Note> mCurrent;
     private static boolean mOrderAscending = true;
 
-    static void initComparators()
+
+    public static void initComparators()
     {
         compareByFilename = new java.util.Comparator<Note>() {
             @Override
@@ -109,17 +112,17 @@ class Comparison {
         };
     }
 
-    static void setCurrentComparator(Comparator<Note> comparator)
+    public static void setCurrentComparator(Comparator<Note> comparator)
     {
         mCurrent = comparator;
     }
 
-    static Comparator<Note> getCurrentComparator()
+    public static Comparator<Note> getCurrentComparator()
     {
         return mCurrent;
     }
 
-    static Comparator<Note> getCompareByFilename()
+    public static Comparator<Note> getCompareByFilename()
     {
         return compareByFilename;
     }
@@ -134,7 +137,7 @@ class Comparison {
         return compareByModificationDate;
     }
 
-    static Comparator<Note> getCompareByTitle()
+    public static Comparator<Note> getCompareByTitle()
     {
         return compareByTitle;
     }
@@ -144,7 +147,7 @@ class Comparison {
         mOrderAscending = true;
     }
 
-    static void setOrderDescending()
+    public static void setOrderDescending()
     {
         mOrderAscending = false;
     }

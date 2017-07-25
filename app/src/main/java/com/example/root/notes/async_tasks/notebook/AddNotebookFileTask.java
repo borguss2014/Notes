@@ -1,23 +1,27 @@
-package com.example.root.notes;
+package com.example.root.notes.async_tasks.notebook;
 
 import android.os.AsyncTask;
+
+import com.example.root.notes.Notebook;
+import com.example.root.notes.functionality.NotebooksAdapter;
+import com.example.root.notes.util.Utilities;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * Created by Spoiala Cristian on 6/12/2017.
+ * TODO: Add a class header comment!
  */
 
-class AddNotebookTask extends AsyncTask<String, String, Void>
+public class AddNotebookFileTask extends AsyncTask<String, String, Void>
 {
-    private NotebooksAdapter    adapter;
-    private Notebook            notebook;
+    private NotebooksAdapter adapter;
+    private Notebook notebook;
     private String dirPath;
     private ArrayList<Notebook> notebooksList;
 
-    AddNotebookTask(Notebook notebook, String dirPath)
+    public AddNotebookFileTask(Notebook notebook, String dirPath)
     {
         this.notebook       = notebook;
         this.dirPath = dirPath;
@@ -64,12 +68,12 @@ class AddNotebookTask extends AsyncTask<String, String, Void>
         }
     }
 
-    void setNotebooksList(ArrayList<Notebook> notebooksList)
+    public void setNotebooksList(ArrayList<Notebook> notebooksList)
     {
         this.notebooksList = notebooksList;
     }
 
-    void setNotebooksAdapter(NotebooksAdapter adapter)
+    public void setNotebooksAdapter(NotebooksAdapter adapter)
     {
         this.adapter = adapter;
     }

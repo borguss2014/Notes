@@ -4,10 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
- * Created by Spoiala Cristian on 5/30/2017.
+ * TODO: Add a class header comment!
  */
 
-class Notebook implements Serializable{
+public class Notebook implements Serializable{
 
     private String mName;
     private ArrayList<Note> mNotes;

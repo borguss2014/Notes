@@ -1,25 +1,27 @@
-package com.example.root.notes;
+package com.example.root.notes.async_tasks.note;
 
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 
-import java.io.File;
-import java.lang.ref.WeakReference;
+import com.example.root.notes.util.Attributes;
+import com.example.root.notes.Note;
+import com.example.root.notes.util.Utilities;
+
 import java.util.ArrayList;
 
 /**
- * Created by Spoiala Cristian on 6/2/2017.
+ * TODO: Add a class header comment!
  */
 
-class DeleteNoteTask extends AsyncTask<String, String, Void>
+public class DeleteNoteTask extends AsyncTask<String, String, Void>
 {
     private Handler         handler;
     private String          notePath;
     private ArrayList<Note> notesList;
     private int             clickedNotePosition;
 
-    DeleteNoteTask(String notePath, int clickedNotePosition)
+    public DeleteNoteTask(String notePath, int clickedNotePosition)
     {
         this.notePath               = notePath;
         this.clickedNotePosition    = clickedNotePosition;
@@ -62,12 +64,12 @@ class DeleteNoteTask extends AsyncTask<String, String, Void>
         return null;
     }
 
-    void setHandler(Handler handler)
+    public void setHandler(Handler handler)
     {
         this.handler = handler;
     }
 
-    void setNotesList(ArrayList<Note> notesList)
+    public void setNotesList(ArrayList<Note> notesList)
     {
         this.notesList = notesList;
     }

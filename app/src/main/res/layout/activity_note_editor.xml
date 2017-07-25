@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:weightSum="1"
-    tools:context="com.example.root.notes.NoteEditorActivity"
+    tools:context="com.example.root.notes.views.NoteEditorView"
     tools:layout_editor_absoluteX="0dp"
     tools:layout_editor_absoluteY="81dp">
 
@@ -19,7 +19,7 @@
         android:maxLength="30"
         android:maxLines="1" />
 
-    <com.example.root.notes.DottedLineEditText
+    <com.example.root.notes.functionality.DottedLineEditText
         android:id="@+id/note_et_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

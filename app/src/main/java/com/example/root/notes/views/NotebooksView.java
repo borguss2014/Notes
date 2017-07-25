@@ -1,4 +1,4 @@
-package com.example.root.notes;
+package com.example.root.notes.views;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,29 +12,32 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.example.root.notes.util.Attributes;
+import com.example.root.notes.Notebook;
+import com.example.root.notes.functionality.NotebooksAdapter;
+import com.example.root.notes.R;
+import com.example.root.notes.util.Utilities;
+import com.example.root.notes.async_tasks.notebook.AddNotebookFileTask;
+import com.example.root.notes.async_tasks.notebook.LoadNotebooksTask;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Random;
 
-public class MainActivity extends AppCompatActivity
+public class NotebooksView extends AppCompatActivity
 {
 
-    private WeakReference<MainActivity> context;
-    private String                      dialogText;
-    private ArrayList<Notebook>         mNotebooks;
-    private ListView                    mNotebooksView;
-    private String                      notebooksDirPath;
-    private LoadNotebooksTask           loadAllNotebooks;
-    private NotebooksAdapter            mNotebooksViewAdapter;
+    private WeakReference<NotebooksView>    context;
+    private String                          dialogText;
+    private ArrayList<Notebook>             mNotebooks;
+    private ListView                        mNotebooksView;
+    private String                          notebooksDirPath;
+    private LoadNotebooksTask               loadAllNotebooks;
+    private NotebooksAdapter                mNotebooksViewAdapter;
 
     //private static ArrayList<Note> mNotesTemp;
 
@@ -258,7 +261,7 @@ public class MainActivity extends AppCompatActivity
 
                 String notebookPath = notebooksDirPath.concat(File.separator.concat(newNotebook.getName()));
 
-                AddNotebookTask addNotebook = new AddNotebookTask(newNotebook, notebookPath);
+                AddNotebookFileTask addNotebook = new AddNotebookFileTask(newNotebook, notebookPath);
                 addNotebook.setNotebooksList(mNotebooks);
                 addNotebook.setNotebooksAdapter(mNotebooksViewAdapter);
 

@@ -3,10 +3,10 @@ package com.example.root.notes;
 import java.io.Serializable;
 
 /**
- * Created by ROOT on 3/24/2017.
+ * TODO: Add a class header comment!
  */
 
-class DateTime implements Serializable{
+public class DateTime implements Serializable{
     private int mHour;
     private int mMinute;
     private int mSeconds;
@@ -15,7 +15,7 @@ class DateTime implements Serializable{
     private int mMonth;
     private int mYear;
 
-    DateTime()
+    public DateTime()
     {
         this.mHour      = -1;
         this.mMinute    = -1;
@@ -30,7 +30,7 @@ class DateTime implements Serializable{
         return mHour;
     }
 
-    void setHour(int mHour) {
+    public void setHour(int mHour) {
         this.mHour = mHour;
     }
 
@@ -38,7 +38,7 @@ class DateTime implements Serializable{
         return mMinute;
     }
 
-    void setMinute(int mMinute) {
+    public void setMinute(int mMinute) {
         this.mMinute = mMinute;
     }
 
@@ -46,46 +46,42 @@ class DateTime implements Serializable{
         return mSeconds;
     }
 
-    void setSeconds(int mSeconds) {
+    public void setSeconds(int mSeconds) {
         this.mSeconds = mSeconds;
     }
 
-    int getDay() {
+    public int getDay() {
         return mDay;
     }
 
-    void setDay(int day) {
+    public void setDay(int day) {
         this.mDay = day;
     }
 
-    int getMonth() {
+    public int getMonth() {
         return mMonth;
     }
 
-    void setMonth(int month) {
+    public void setMonth(int month) {
         this.mMonth = month;
     }
 
-    int getYear() {
+    public int getYear() {
         return mYear;
     }
 
-    void setYear(int year) {
+    public void setYear(int year) {
         this.mYear = year;
     }
 
-    boolean isDateSet()
+    public boolean isDateSet()
     {
         return !(mDay == -1 && mMonth == -1 && mYear == -1);
     }
 
     public boolean isTimeSet()
     {
-        if(mHour == -1 && mMinute == -1 && mSeconds == -1)
-        {
-            return false;
-        }
-        return true;
+        return !(mHour == -1 && mMinute == -1 && mSeconds == -1);
     }
 
     public String getDate()
@@ -98,14 +94,14 @@ class DateTime implements Serializable{
         return mHour + ":" + mMinute + ":" + mSeconds;
     }
 
-    String getDateTime()
+    public String getDateTime()
     {
         return mMonth + "/" + mDay + "/" + mYear + " " +
                 mHour + ":" + mMinute + ":" + mSeconds;
     }
 
-    @Override
-    public String toString() {
+    public String toString()
+    {
         return "DateTime{" +
                 "[Hour=" + mHour + ", Minutes=" + mMinute + ", Seconds=" + mSeconds + "]," +
                 "[Month=" + mMonth + ", Days=" + mDay + ", Year=" + mYear + "]" +

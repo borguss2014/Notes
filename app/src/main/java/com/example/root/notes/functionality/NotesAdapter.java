@@ -1,4 +1,4 @@
-package com.example.root.notes;
+package com.example.root.notes.functionality;
 
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
@@ -9,6 +9,13 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.root.notes.DateTime;
+import com.example.root.notes.ElapsedTime;
+import com.example.root.notes.Note;
+import com.example.root.notes.R;
+import com.example.root.notes.util.Utilities;
+import com.example.root.notes.views.NotesView;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,7 +24,7 @@ import java.util.TimeZone;
 
 
 /**
- * Created by ROOT on 3/21/2017.
+ * TODO: Add a class header comment!
  */
 
 
