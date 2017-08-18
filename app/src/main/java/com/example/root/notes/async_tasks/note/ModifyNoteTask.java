@@ -5,13 +5,14 @@ import android.os.Handler;
 
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.util.Comparison;
-import com.example.root.notes.Note;
+import com.example.root.notes.model.Note;
 import com.example.root.notes.util.Utilities;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * TODO: Add a class header comment!
@@ -22,7 +23,7 @@ public class ModifyNoteTask extends AsyncTask<String, String, Void>
     private Note note;
     private Handler         handler;
     private String          notePath;
-    private ArrayList<Note> notesList;
+    private List<Note> notesList;
     private int             clickedNotePosition;
 
     public ModifyNoteTask(Note note, String notePath, int clickedNotePosition)
@@ -82,7 +83,7 @@ public class ModifyNoteTask extends AsyncTask<String, String, Void>
         this.handler = handler;
     }
 
-    public void setNotesList(ArrayList<Note> notesList)
+    public void setNotesList(List<Note> notesList)
     {
         this.notesList = notesList;
     }

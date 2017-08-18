@@ -13,12 +13,12 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 import com.example.root.notes.util.Attributes;
-import com.example.root.notes.DateTime;
 import com.example.root.notes.functionality.DottedLineEditText;
-import com.example.root.notes.Note;
+import com.example.root.notes.model.Note;
 import com.example.root.notes.R;
 import com.example.root.notes.util.Utilities;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -65,8 +65,8 @@ public class NoteEditorView extends AppCompatActivity {
             Log.d("NOTE_ACTIVITY", "NEW NOTE");
             mNewNote = true;
 
-            mReceivedNote = new Note();
-            mReceivedNote.setFileName(Utilities.generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
+//            mReceivedNote = new Note();
+//            mReceivedNote.setFileName(Utilities.generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
         }
 
         mEditTextTitle.addTextChangedListener(new TextWatcher() {
@@ -79,14 +79,14 @@ public class NoteEditorView extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.d("OnTextChanged", "Text changed title");
 
-                if(!mNewNote) {
-                    Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
-                    if (!mReceivedNote.isEqual(currentContent)) {
-                        //Note altered
-                        mNoteAltered = true;
-                        invalidateOptionsMenu();
-                    }
-                }
+//                if(!mNewNote) {
+//                    Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
+//                    if (!mReceivedNote.isEqual(currentContent)) {
+//                        //Note altered
+//                        mNoteAltered = true;
+//                        invalidateOptionsMenu();
+//                    }
+//                }
             }
 
             @Override
@@ -107,12 +107,12 @@ public class NoteEditorView extends AppCompatActivity {
 
                 if(!mNewNote)
                 {
-                    Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
-                    if (!mReceivedNote.isEqual(currentContent)) {
-                        //Note altered
-                        mNoteAltered = true;
-                        invalidateOptionsMenu();
-                    }
+//                    Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
+//                    if (!mReceivedNote.isEqual(currentContent)) {
+//                        //Note altered
+//                        mNoteAltered = true;
+//                        invalidateOptionsMenu();
+//                    }
                 }
             }
 
@@ -146,8 +146,8 @@ public class NoteEditorView extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         String note_title = mEditTextTitle.getText().toString().trim();
         String note_content = mDLEditTextContent.getText().toString().trim();
 
@@ -160,39 +160,39 @@ public class NoteEditorView extends AppCompatActivity {
                 Calendar calendar  = new GregorianCalendar(TimeZone.getDefault());
                 calendar.setTime(new Date());
 
-                DateTime currentDate = Utilities.getCurrentDateTime(calendar);
-
-                int resultCode;
-
-                if(note_title.isEmpty())
-                {
-                    mReceivedNote.setTitle("Untitled");
-                }
-                else
-                {
-                    mReceivedNote.setTitle(note_title);
-                }
-
-                if(mNewNote)
-                {
-                    mReceivedNote.setCreationDate(currentDate);
-
-                    resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
-                }
-                else
-                {
-                    mReceivedNote.setLastModifiedDate(currentDate);
-
-                    resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
-                }
+//                DateTime currentDate = Utilities.getCurrentDateTime(calendar);
+//
+//                int resultCode;
+//
+//                if(note_title.isEmpty())
+//                {
+//                    mReceivedNote.setTitle("Untitled");
+//                }
+//                else
+//                {
+//                    mReceivedNote.setTitle(note_title);
+//                }
+//
+//                if(mNewNote)
+//                {
+//                    mReceivedNote.setCreationDate(currentDate);
+//
+//                    resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
+//                }
+//                else
+//                {
+//                    mReceivedNote.setModificationDate(currentDate);
+//
+//                    resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
+//                }
 
                 mReceivedNote.setContent(note_content);
 
                 Intent resultIntent = new Intent();
 
-                resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, mReceivedNote);
+                resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, (Serializable) mReceivedNote);
 
-                setResult(resultCode, resultIntent);
+                //setResult(resultCode, resultIntent);
 
                 finish();
                 return true;

@@ -1,6 +1,6 @@
 package com.example.root.notes.util;
 
-import com.example.root.notes.Note;
+import com.example.root.notes.model.Note;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -58,24 +58,24 @@ public class Comparison
 
                 int result = -1000;
 
-                try
-                {
-                    Date firstDate = sdf.parse(o1.getCreationDate().getDateTime());
-                    Date secondDate = sdf.parse(o2.getCreationDate().getDateTime());
-
-                    if(mOrderAscending)
-                    {
-                        result = firstDate.compareTo(secondDate);
-                    }
-                    else
-                    {
-                        result = secondDate.compareTo(firstDate);
-                    }
-                }
-                catch (ParseException | NullPointerException e)
-                {
-                    e.printStackTrace();
-                }
+//                try
+//                {
+//                    Date firstDate = sdf.parse(o1.getCreationDate().getDateTime());
+//                    Date secondDate = sdf.parse(o2.getCreationDate().getDateTime());
+//
+//                    if(mOrderAscending)
+//                    {
+//                        result = firstDate.compareTo(secondDate);
+//                    }
+//                    else
+//                    {
+//                        result = secondDate.compareTo(firstDate);
+//                    }
+//                }
+//                catch (ParseException | NullPointerException e)
+//                {
+//                    e.printStackTrace();
+//                }
 
                 return result;
             }
@@ -88,24 +88,24 @@ public class Comparison
 
                 int result = -1000;
 
-                try
-                {
-                    Date firstDate = sdf.parse(o1.getLastModifiedDate().getDateTime());
-                    Date secondDate = sdf.parse(o2.getLastModifiedDate().getDateTime());
-
-                    if(mOrderAscending)
-                    {
-                        result = firstDate.compareTo(secondDate);
-                    }
-                    else
-                    {
-                        result = secondDate.compareTo(firstDate);
-                    }
-                }
-                catch (ParseException e)
-                {
-                    e.printStackTrace();
-                }
+//                try
+//                {
+//                    Date firstDate = sdf.parse(o1.getModificationDate().getDateTime());
+//                    Date secondDate = sdf.parse(o2.getModificationDate().getDateTime());
+//
+//                    if(mOrderAscending)
+//                    {
+//                        result = firstDate.compareTo(secondDate);
+//                    }
+//                    else
+//                    {
+//                        result = secondDate.compareTo(firstDate);
+//                    }
+//                }
+//                catch (ParseException e)
+//                {
+//                    e.printStackTrace();
+//                }
 
                 return result;
             }

@@ -1,7 +1,9 @@
 package com.example.root.notes.functionality;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,18 +11,12 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.root.notes.DateTime;
-import com.example.root.notes.ElapsedTime;
-import com.example.root.notes.Note;
+import com.example.root.notes.model.Note;
 import com.example.root.notes.R;
 import com.example.root.notes.util.Utilities;
 import com.example.root.notes.views.NotesView;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import java.util.List;
 
 
 /**
@@ -30,15 +26,17 @@ import java.util.TimeZone;
 
 public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
 {
-    private ArrayList<Note> mDataSet;
-    private ArrayList<Integer> mSelectedItems;
+    private List<Note> mDataSet;
+    private Context mContext;
+    private List<Integer> mSelectedItems;
 
     private final int WRAP_CONTENT_LENGTH = 35;
     private View.OnClickListener mClickListener;
     private View.OnLongClickListener mLongClickListener;
 
-    public NotesAdapter(ArrayList<Note> mDataSet)
+    public NotesAdapter(Context context, List<Note> mDataSet)
     {
+        mContext = context;
         this.mDataSet = mDataSet;
     }
 
@@ -149,69 +147,70 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
                 holder.getContentView().setText(note.getContent());
             }
 
-            String date = "DATE PLACEHOLDER";
+//            String date = "DATE PLACEHOLDER";
+//
+//            Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
+//            calendar.setTime(new Date());
 
-            Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
-            calendar.setTime(new Date());
+//            Date currentDate = Utilities.getCurrentDateTime(calendar);
+//            Date creationDate = note.getCreationDate();
+//            Date modificationDate = note.getModificationDate();
+//
+//            ElapsedTime elapsed;
 
-            DateTime currentDate = Utilities.getCurrentDateTime(calendar);
-            DateTime creationDate = note.getCreationDate();
-            DateTime modificationDate = note.getLastModifiedDate();
+//            if(!note.getModificationDate().isDateSet())
+//            {
+//
+//                elapsed = Utilities.elapsedTime(creationDate.getDateTime(), currentDate.getDateTime());
+//
+//                if(!elapsed.isOneMinuteElapsed())
+//                {
+//                    date = "Created seconds ago";
+//                }
+//                else if(!elapsed.isOneHourElapsed())
+//                {
+//                    date = "Created " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
+//                }
+//                else if(!elapsed.isOneDayElapsed())
+//                {
+//                    date = "Created " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
+//                }
+//                else if(elapsed.isOneDayElapsed())
+//                {
+//                    date = Integer.toString(creationDate.getMonth()) + "/"
+//                            + Integer.toString(creationDate.getDay()) + "/"
+//                            + Integer.toString(creationDate.getYear());
+//                }
+//            }
+//            else
+//            {
+//                elapsed = Utilities.elapsedTime(modificationDate.getDateTime(), currentDate.getDateTime());
+//
+//                if(elapsed.getElapsedSeconds() < 60 &&
+//                        elapsed.getElapsedMinutes() == 0 &&
+//                        elapsed.getElapsedHours() == 0 &&
+//                        elapsed.getElapsedDays() == 0)
+//                {
+//                    date = "Modified seconds ago";
+//                }
+//                else if(elapsed.getElapsedMinutes() < 60 && elapsed.getElapsedHours() == 0 && elapsed.getElapsedDays() == 0)
+//                {
+//                    date = "Modified " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
+//                }
+//                else if(elapsed.getElapsedHours() < 24 && elapsed.getElapsedDays() == 0)
+//                {
+//                    date = "Modified " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
+//                }
+//                else if(elapsed.getElapsedDays() > 0)
+//                {
+//                    date = "Modified: " + Integer.toString(modificationDate.getMonth()) + "/"
+//                            + Integer.toString(modificationDate.getDay()) + "/"
+//                            + Integer.toString(modificationDate.getYear());
+//                }
+//            }
 
-            ElapsedTime elapsed;
 
-            if(!note.getLastModifiedDate().isDateSet())
-            {
-
-                elapsed = Utilities.elapsedTime(creationDate.getDateTime(), currentDate.getDateTime());
-
-                if(!elapsed.isOneMinuteElapsed())
-                {
-                    date = "Created seconds ago";
-                }
-                else if(!elapsed.isOneHourElapsed())
-                {
-                    date = "Created " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
-                }
-                else if(!elapsed.isOneDayElapsed())
-                {
-                    date = "Created " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
-                }
-                else if(elapsed.isOneDayElapsed())
-                {
-                    date = Integer.toString(creationDate.getMonth()) + "/"
-                            + Integer.toString(creationDate.getDay()) + "/"
-                            + Integer.toString(creationDate.getYear());
-                }
-            }
-            else
-            {
-                elapsed = Utilities.elapsedTime(modificationDate.getDateTime(), currentDate.getDateTime());
-
-                if(elapsed.getElapsedSeconds() < 60 &&
-                        elapsed.getElapsedMinutes() == 0 &&
-                        elapsed.getElapsedHours() == 0 &&
-                        elapsed.getElapsedDays() == 0)
-                {
-                    date = "Modified seconds ago";
-                }
-                else if(elapsed.getElapsedMinutes() < 60 && elapsed.getElapsedHours() == 0 && elapsed.getElapsedDays() == 0)
-                {
-                    date = "Modified " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
-                }
-                else if(elapsed.getElapsedHours() < 24 && elapsed.getElapsedDays() == 0)
-                {
-                    date = "Modified " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
-                }
-                else if(elapsed.getElapsedDays() > 0)
-                {
-                    date = "Modified: " + Integer.toString(modificationDate.getMonth()) + "/"
-                            + Integer.toString(modificationDate.getDay()) + "/"
-                            + Integer.toString(modificationDate.getYear());
-                }
-            }
-
-            holder.getDateView().setText(date);
+            //holder.getDateView().setText(Utilities.getRelativeTimespanString(mContext, note.getCreationDate().getTime(), DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS));
             holder.getDateView().setTextColor(Color.GREEN);
         }
 
@@ -255,5 +254,11 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
     public void setLongClickListener(View.OnLongClickListener callback )
     {
         mLongClickListener = callback;
+    }
+
+    public void addItems(List<Note> newDataset)
+    {
+        this.mDataSet = newDataset;
+        notifyDataSetChanged();
     }
 }

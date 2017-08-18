@@ -3,11 +3,11 @@ package com.example.root.notes.util;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.text.format.DateUtils;
 import android.util.Log;
 
-import com.example.root.notes.DateTime;
 import com.example.root.notes.ElapsedTime;
-import com.example.root.notes.Note;
+import com.example.root.notes.model.Note;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -147,30 +147,30 @@ public class Utilities {
         {
             String noteUniqueFilename = generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION);
 
-            tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
-            tempNote.setFileName(noteUniqueFilename);
+            //tempNote = new Note("test" + Integer.toString(i), "Test note " + Integer.toString(i));
+            //tempNote.setFileName(noteUniqueFilename);
 
             String noteFilePath = notesDirPath.concat(File.separator.concat(noteUniqueFilename));
 
             fileOutputStream = new FileOutputStream(noteFilePath);
 
-            Utilities.saveToFile(fileOutputStream, tempNote);
+            //Utilities.saveToFile(fileOutputStream, tempNote);
         }
     }
 
-    public static DateTime getCurrentDateTime(Calendar calendar)
-    {
-        DateTime dateTime = new DateTime();
-        dateTime.setSeconds(calendar.get(Calendar.SECOND));
-        dateTime.setMinute(calendar.get(Calendar.MINUTE));
-        dateTime.setHour(calendar.get(Calendar.HOUR_OF_DAY));
-
-        dateTime.setDay(calendar.get(Calendar.DAY_OF_MONTH));
-        dateTime.setMonth(calendar.get(Calendar.MONTH) + 1);
-        dateTime.setYear(calendar.get(Calendar.YEAR));
-
-        return dateTime;
-    }
+//    public static DateTime getCurrentDateTime(Calendar calendar)
+//    {
+//        DateTime dateTime = new DateTime();
+//        dateTime.setSeconds(calendar.get(Calendar.SECOND));
+//        dateTime.setMinute(calendar.get(Calendar.MINUTE));
+//        dateTime.setHour(calendar.get(Calendar.HOUR_OF_DAY));
+//
+//        dateTime.setDay(calendar.get(Calendar.DAY_OF_MONTH));
+//        dateTime.setMonth(calendar.get(Calendar.MONTH) + 1);
+//        dateTime.setYear(calendar.get(Calendar.YEAR));
+//
+//        return dateTime;
+//    }
 
     public static ElapsedTime elapsedTime(String d1, String d2)
     {
@@ -220,6 +220,17 @@ public class Utilities {
     public static String generateUniqueFilename(String extension)
     {
         return UUID.randomUUID().toString() + extension;
+    }
+
+    public static CharSequence getRelativeTimespanString(Context context, long time, long minResolution, long transitionResolution) {
+        long currentTime = new Date().getTime();
+        long timeDiff = currentTime - time;
+
+        if (timeDiff < transitionResolution) {
+            return DateUtils.getRelativeTimeSpanString(time, currentTime, minResolution);
+        } else {
+            return DateUtils.formatDateTime(context, time, 0);
+        }
     }
 
 }

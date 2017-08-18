@@ -3,7 +3,7 @@ package com.example.root.notes.async_tasks.notebook;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.example.root.notes.Notebook;
+import com.example.root.notes.model.Notebook;
 import com.example.root.notes.functionality.NotebooksAdapter;
 
 import java.io.File;
@@ -71,10 +71,10 @@ public class LoadNotebooksTask extends AsyncTask<String, String, Void>
         {
             if(mRunning)
             {
-                Notebook notebook = new Notebook(file.getName());
-                notebooksList.add(notebook);
-
-                Log.d("NOTEBOOKS_LOAD_TASK", "Notebook name: " + notebook.getName());
+//                Notebook notebook = new Notebook(file.getName());
+//                notebooksList.add(notebook);
+//
+//                Log.d("NOTEBOOKS_LOAD_TASK", "Notebook name: " + notebook.getName());
             }
         }
 

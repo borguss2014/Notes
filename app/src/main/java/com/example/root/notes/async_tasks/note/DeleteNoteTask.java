@@ -5,10 +5,11 @@ import android.os.Handler;
 import android.os.Message;
 
 import com.example.root.notes.util.Attributes;
-import com.example.root.notes.Note;
+import com.example.root.notes.model.Note;
 import com.example.root.notes.util.Utilities;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * TODO: Add a class header comment!
@@ -18,7 +19,7 @@ public class DeleteNoteTask extends AsyncTask<String, String, Void>
 {
     private Handler         handler;
     private String          notePath;
-    private ArrayList<Note> notesList;
+    private List<Note> notesList;
     private int             clickedNotePosition;
 
     public DeleteNoteTask(String notePath, int clickedNotePosition)
@@ -69,7 +70,7 @@ public class DeleteNoteTask extends AsyncTask<String, String, Void>
         this.handler = handler;
     }
 
-    public void setNotesList(ArrayList<Note> notesList)
+    public void setNotesList(List<Note> notesList)
     {
         this.notesList = notesList;
     }

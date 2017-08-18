@@ -2,7 +2,7 @@ package com.example.root.notes.async_tasks.notebook;
 
 import android.os.AsyncTask;
 
-import com.example.root.notes.Notebook;
+import com.example.root.notes.model.Notebook;
 import com.example.root.notes.functionality.NotebooksAdapter;
 import com.example.root.notes.util.Utilities;
 

@@ -1,11 +1,18 @@
 package com.example.root.notes.views;
 
+import android.arch.lifecycle.LifecycleRegistry;
+import android.arch.lifecycle.LifecycleRegistryOwner;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -16,27 +23,34 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.example.root.notes.async_tasks.notebook.AddNotebookDBTask;
+import com.example.root.notes.database.AppDatabase;
+import com.example.root.notes.database.DatabaseCreator;
+import com.example.root.notes.database.NotebookViewModel;
 import com.example.root.notes.util.Attributes;
-import com.example.root.notes.Notebook;
+import com.example.root.notes.model.Notebook;
 import com.example.root.notes.functionality.NotebooksAdapter;
 import com.example.root.notes.R;
 import com.example.root.notes.util.Utilities;
-import com.example.root.notes.async_tasks.notebook.AddNotebookFileTask;
 import com.example.root.notes.async_tasks.notebook.LoadNotebooksTask;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
 
-public class NotebooksView extends AppCompatActivity
+public class NotebooksView extends AppCompatActivity implements LifecycleRegistryOwner
 {
 
+    private final LifecycleRegistry mRegistry = new LifecycleRegistry(this);
+
     private WeakReference<NotebooksView>    context;
-    private String                          dialogText;
-    private ArrayList<Notebook>             mNotebooks;
+    private LiveData<List<Notebook>>        mNotebooks;
+    private AppDatabase                     appDatabase;
     private ListView                        mNotebooksView;
     private String                          notebooksDirPath;
     private LoadNotebooksTask               loadAllNotebooks;
+    private String                          dialogNotebookName;
+    private NotebookViewModel               mNotebooksViewModel;
     private NotebooksAdapter                mNotebooksViewAdapter;
 
     //private static ArrayList<Note> mNotesTemp;
@@ -49,22 +63,58 @@ public class NotebooksView extends AppCompatActivity
 
         Log.d("DEBUG", "NOTEBOOKS_ON_CREATE");
 
-        notebooksDirPath = getApplicationContext().getFilesDir().toString();
-
         context = new WeakReference<>(this);
+
+        DatabaseCreator dbCreator = DatabaseCreator.getInstance();
+
+        dbCreator.isDatabaseCreated().observe(NotebooksView.this, new Observer<Boolean>()
+        {
+            @Override
+            public void onChanged(@Nullable Boolean dbCreated)
+            {
+                if (dbCreated != null && dbCreated)
+                {
+                    Log.d("DatabaseCreator", "Change detected ... retrieving notebooks");
+
+                    appDatabase = dbCreator.getDatabase();
+                    mNotebooksViewModel.getNotebooksList().setValue(appDatabase.notebookModel().getAllNotebooks().getValue());
+                }
+            }
+        });
+
+        MutableLiveData<List<Notebook>> notebooksLst = new MutableLiveData<>();
+        notebooksLst.setValue(new ArrayList<>());
+
+        NotebookViewModel.Factory notebookViewModelFactory = new NotebookViewModel.Factory(
+                getApplication(), notebooksLst
+        );
+
+        mNotebooksViewModel = ViewModelProviders.of(this, notebookViewModelFactory).get(NotebookViewModel.class);
+        mNotebooksViewModel.getNotebooksList().observe(NotebooksView.this, new Observer<List<Notebook>>()
+        {
+            @Override
+            public void onChanged(@Nullable List<Notebook> notebooks)
+            {
+                Log.d("NotebooksViewModel", "Change detected ... refreshing notebooks adapter");
+                mNotebooksViewAdapter.notifyDataSetChanged();
+            }
+        });
+
+        //notebooksDirPath = getApplicationContext().getFilesDir().toString();
 
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
         mNotebooksView = (ListView) findViewById(R.id.notebooks_list_view);
 
-        mNotebooks = new ArrayList<>();
+        if(mNotebooksViewModel.getNotebooksList().getValue() != null)
+        {
+            mNotebooksViewAdapter = new NotebooksAdapter(context.get(), R.layout.notebooks_adapter_row, mNotebooksViewModel.getNotebooksList().getValue());
+            mNotebooksView.setAdapter(mNotebooksViewAdapter);
+        }
 
-        mNotebooksViewAdapter = new NotebooksAdapter(context.get(), R.layout.notebooks_adapter_row, mNotebooks);
-        mNotebooksView.setAdapter(mNotebooksViewAdapter);
-
-        loadAllNotebooks = new LoadNotebooksTask(notebooksDirPath);
-        loadAllNotebooks.setNotebooksList(mNotebooks);
-        loadAllNotebooks.setNotebooksAdapter(mNotebooksViewAdapter);
+//        loadAllNotebooks = new LoadNotebooksTask(notebooksDirPath);
+//        loadAllNotebooks.setNotebooksList(mNotebooks);
+//        loadAllNotebooks.setNotebooksAdapter(mNotebooksViewAdapter);
 
         mNotebooksView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
@@ -147,7 +197,9 @@ public class NotebooksView extends AppCompatActivity
 //            }
 //        });
 
-        loadAllNotebooks.execute();
+        //loadAllNotebooks.execute();
+
+        dbCreator.createDb(getApplicationContext());
     }
 
     @Override
@@ -219,7 +271,7 @@ public class NotebooksView extends AppCompatActivity
                 return true;
             case R.id.action_purge_notebooks:
                 Utilities.deleteAllFolders(context.get());
-                mNotebooks.clear();
+                mNotebooks.getValue().clear();
                 mNotebooksViewAdapter.notifyDataSetChanged();
             default:
                 return super.onOptionsItemSelected(item);
@@ -240,7 +292,7 @@ public class NotebooksView extends AppCompatActivity
 
     public void createNotebook()
     {
-        dialogText = "";
+        dialogNotebookName = "";
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Set notebook name");
@@ -250,22 +302,30 @@ public class NotebooksView extends AppCompatActivity
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
 
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        builder.setPositiveButton("Add", new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
-                dialogText = input.getText().toString();
+                dialogNotebookName = input.getText().toString();
 
-                Notebook newNotebook = new Notebook(dialogText);
+                if(dialogNotebookName.equals(""))
+                {
+                    dialogNotebookName = "Untitled";
+                }
 
-                String notebookPath = notebooksDirPath.concat(File.separator.concat(newNotebook.getName()));
+                Notebook newNotebook = new Notebook(dialogNotebookName);
 
-                AddNotebookFileTask addNotebook = new AddNotebookFileTask(newNotebook, notebookPath);
-                addNotebook.setNotebooksList(mNotebooks);
-                addNotebook.setNotebooksAdapter(mNotebooksViewAdapter);
+//                String notebookPath = notebooksDirPath.concat(File.separator.concat(newNotebook.getName()));
+//
+//                AddNotebookFileTask addNotebook = new AddNotebookFileTask(newNotebook, notebookPath);
+//                addNotebook.setNotebooksList(mNotebooks.getValue());
+//                addNotebook.setNotebooksAdapter(mNotebooksViewAdapter);
+//
+//                addNotebook.execute();
 
-                addNotebook.execute();
+                AddNotebookDBTask addNotebook = new AddNotebookDBTask(appDatabase);
+                addNotebook.execute(newNotebook);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
@@ -280,14 +340,19 @@ public class NotebooksView extends AppCompatActivity
         builder.show();
     }
 
-    public ArrayList<Notebook> getNotebooks()
+    public List<Notebook> getNotebooks()
     {
-        return mNotebooks;
+        return mNotebooks.getValue();
     }
 
     public NotebooksAdapter getNotebooksViewAdapter()
     {
         return mNotebooksViewAdapter;
+    }
+
+    @Override
+    public LifecycleRegistry getLifecycle() {
+        return mRegistry;
     }
 
 //    public static void setTempNotes(ArrayList<Note> tempNotes)

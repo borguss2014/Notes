@@ -11,7 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.root.notes.Notebook;
+import com.example.root.notes.model.Notebook;
 import com.example.root.notes.R;
 
 import java.util.List;

@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.util.Comparison;
-import com.example.root.notes.Note;
+import com.example.root.notes.model.Note;
 import com.example.root.notes.functionality.NotesAdapter;
 
 import java.io.File;
