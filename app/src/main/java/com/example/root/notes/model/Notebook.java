@@ -18,14 +18,19 @@ import java.util.List;
  * TODO: Add a class header comment!
  */
 
-@Entity(tableName = "notebooks")
+@Entity(tableName = Notebook.TABLE_NAME)
 public class Notebook implements Serializable
 {
+    @Ignore
+    public final static String TABLE_NAME = "notebooks";
+
+    @Ignore
+    public final static String NOTEBOOK_NAME = "notebook_name";
 
     @PrimaryKey(autoGenerate = true)
     private int id;
 
-    @ColumnInfo(name = "notebook_name")
+    @ColumnInfo(name = Notebook.NOTEBOOK_NAME)
     private String mName;
 
     @Ignore

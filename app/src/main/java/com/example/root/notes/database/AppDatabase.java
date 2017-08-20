@@ -16,7 +16,7 @@ import com.example.root.notes.model.Notebook;
  * TODO: Add a class header comment!
  */
 
-@Database(entities = {Note.class, Notebook.class}, version = 1)
+@Database(entities = {Note.class, Notebook.class}, version = 2)
 @TypeConverters({DateConverter.class})
 public abstract class AppDatabase extends RoomDatabase
 {

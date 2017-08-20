@@ -1,23 +1,21 @@
 package com.example.root.notes.async_tasks.notebook;
 
 import android.os.AsyncTask;
+
 import com.example.root.notes.NotebookDao;
-import com.example.root.notes.database.QueryResultObserver;
 import com.example.root.notes.model.Notebook;
 
 /**
  * TODO: Add a class header comment!
  */
 
-public class AddNotebookDBTask extends AsyncTask<Notebook, Void, Void>
+public class PurgeNotebooksDBTask extends AsyncTask<Notebook, Void, Void>
 {
-    private NotebookDao mNotebookDao;
-    private QueryResultObserver mObserver;
+    private NotebookDao notebookDao;
 
-    public AddNotebookDBTask(NotebookDao notebookDao, QueryResultObserver observer)
+    public PurgeNotebooksDBTask(NotebookDao notebookDao)
     {
-        mNotebookDao = notebookDao;
-        mObserver = observer;
+        this.notebookDao = notebookDao;
     }
 
     @Override
@@ -31,7 +29,7 @@ public class AddNotebookDBTask extends AsyncTask<Notebook, Void, Void>
     @Override
     protected Void doInBackground(Notebook... notebook)
     {
-        mObserver.getAddNotebookResult().postValue(mNotebookDao.addNotebook(notebook[0]));
+        notebookDao.deleteAllNotebooks();
         return null;
     }
 }

@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+//android.compileOptions.sourceCompatibility 1.8
+//android.compileOptions.targetCompatibility 1.8
+
 android {
     compileSdkVersion 26
     buildToolsVersion '26.0.1'
@@ -10,10 +13,6 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        // Required to use Java 8.
-        jackOptions {
-            enabled true
-        }
     }
     buildTypes {
         release {
@@ -53,4 +52,5 @@ dependencies {
      */
     annotationProcessor "android.arch.persistence.room:compiler:1.0.0-alpha1"
     compile 'android.arch.persistence.room:runtime:1.0.0-alpha1'
+    implementation 'com.android.support:design:26.0.1'
 }

@@ -34,10 +34,10 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
     private View.OnClickListener mClickListener;
     private View.OnLongClickListener mLongClickListener;
 
-    public NotesAdapter(Context context, List<Note> mDataSet)
+    public NotesAdapter(Context context, List<Note> dataSet)
     {
         mContext = context;
-        this.mDataSet = mDataSet;
+        mDataSet = dataSet;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder

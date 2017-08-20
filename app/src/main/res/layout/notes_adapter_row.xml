@@ -34,8 +34,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:paddingTop="5dp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Menu"
-            android:textColor="@android:color/black"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:textColorHint="@android:color/black"
             android:visibility="visible"
             tools:text="Title" />

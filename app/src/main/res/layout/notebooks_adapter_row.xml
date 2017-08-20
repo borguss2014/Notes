@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/adapter_notebooks_parent_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal">
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingBottom="10dp">
 
     <LinearLayout
         android:id="@+id/adapter_notebooks_title_content_layout"
@@ -22,8 +23,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:paddingTop="5dp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Menu"
-            android:textColor="@android:color/black"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:textColorHint="@android:color/black"
             android:visibility="visible"
             tools:text="Title" />
