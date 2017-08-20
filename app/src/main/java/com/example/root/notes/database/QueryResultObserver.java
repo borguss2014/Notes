@@ -11,15 +11,15 @@ import android.arch.lifecycle.MutableLiveData;
 
 public class QueryResultObserver extends AndroidViewModel
 {
-    private MutableLiveData<Long> addNotebookResult = new MutableLiveData<>();
+    private MutableLiveData<Long> mQueryResult = new MutableLiveData<>();
 
     public QueryResultObserver(Application application)
     {
         super(application);
     }
 
-    public MutableLiveData<Long> getAddNotebookResult()
+    public MutableLiveData<Long> getQueryResult()
     {
-        return addNotebookResult;
+        return mQueryResult;
     }
 }

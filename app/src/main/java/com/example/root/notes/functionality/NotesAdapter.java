@@ -258,7 +258,12 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
 
     public void addItems(List<Note> newDataset)
     {
-        this.mDataSet = newDataset;
+        mDataSet = newDataset;
         notifyDataSetChanged();
+    }
+
+    public void clear()
+    {
+        mDataSet.clear();
     }
 }

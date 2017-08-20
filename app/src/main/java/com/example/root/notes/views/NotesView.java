@@ -1,14 +1,18 @@
 package com.example.root.notes.views;
 
 import android.arch.lifecycle.LifecycleActivity;
+import android.arch.lifecycle.LifecycleRegistry;
+import android.arch.lifecycle.LifecycleRegistryOwner;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.arch.persistence.room.Database;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -17,7 +21,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.example.root.notes.async_tasks.note.RetrieveNotebookDBTask;
 import com.example.root.notes.database.AppDatabase;
+import com.example.root.notes.database.DatabaseCreator;
 import com.example.root.notes.database.NoteViewModel;
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.util.Comparison;
@@ -39,20 +45,24 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-public class NotesView extends LifecycleActivity
+public class NotesView extends AppCompatActivity implements LifecycleRegistryOwner
 {
+    private final LifecycleRegistry mRegistry = new LifecycleRegistry(this);
+
     private static boolean              mSelectMode;
     private static ArrayList<Integer>   mSelectedItems;
     private static int                  mClickedNotePosition;
 
     private RecyclerView                mNotesView;
+    private AppDatabase                 mAppDatabase;
     private String                      notesDirPath;
-    private LoadNotesTask               loadAllNotes;
     private Note                        mReceivedNote;
     private NoteViewModel               notesViewModel;
     private Notebook                    mReceivedNotebook;
     private NotesAdapter                mNotesViewAdapter;
+    private int                         mReceivedNotebookID;
 
     private final IOHandler mHandler = new IOHandler(this);
 
@@ -77,13 +87,26 @@ public class NotesView extends LifecycleActivity
 
         Log.d("DEBUG", "NOTES_ON_CREATE");
 
-        AppDatabase appDatabase = AppDatabase.getDatabase(this.getApplication());
-        mReceivedNotebook.setNotes(
-                appDatabase.noteModel().getNotesForNotebook(mReceivedNotebook.getId())
-        );
+        setTitle("Notes");
+
+        mAppDatabase = DatabaseCreator.getInstance().getDatabase();
+
+        mReceivedNotebookID = getIntent()
+                .getIntExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, -1);
+
+        Log.d("NotesOnCreate", "Received notebook id: " + Integer.toString(mReceivedNotebookID));
+
+        RetrieveNotebookDBTask retrieveNotebook = new RetrieveNotebookDBTask(mAppDatabase.noteModel());
+        try {
+            mReceivedNotebook = retrieveNotebook.execute(mReceivedNotebookID).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
         NoteViewModel.Factory noteViewModelFactory = new NoteViewModel.Factory(
-                getApplication(), mReceivedNotebook.getNotes()
+                getApplication(), mReceivedNotebookID
         );
 
         notesViewModel = ViewModelProviders.of(this, noteViewModelFactory).get(NoteViewModel.class);
@@ -92,15 +115,15 @@ public class NotesView extends LifecycleActivity
             @Override
             public void onChanged(@Nullable List<Note> notes)
             {
-                //TODO
+                Log.d("NotesOnCreate", "Notes view model changed ... updating");
+                mNotesViewAdapter.clear();
+                mNotesViewAdapter.addItems(notes);
             }
         });
 
-        mReceivedNotebook = (Notebook) getIntent()
-                .getSerializableExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY);
 
-        notesDirPath = getApplicationContext().getFilesDir().toString()
-                .concat(File.separator.concat(mReceivedNotebook.getName()));
+//        notesDirPath = getApplicationContext().getFilesDir().toString()
+//                .concat(File.separator.concat(mReceivedNotebook.getName()));
 
         //Utilities.deleteAllFiles(this);
 
@@ -119,7 +142,7 @@ public class NotesView extends LifecycleActivity
 
         mNotesView = (RecyclerView) findViewById(R.id.notes_list_view);
 
-        mNotesViewAdapter = new NotesAdapter(getApplicationContext(), mReceivedNotebook.getNotes().getValue());
+        mNotesViewAdapter = new NotesAdapter(getApplicationContext(), new ArrayList<Note>());
         mNotesView.setAdapter(mNotesViewAdapter);
 
         mNotesView.setLayoutManager(new LinearLayoutManager(this));
@@ -197,31 +220,31 @@ public class NotesView extends LifecycleActivity
 
 //        int listview_max_visible_items = mNotesView.getHeight() / mNotesView.getChildAt(0).getHeight();
 
-        if(savedInstanceState != null)
-        {
-            Log.d("RESTORE_INSTANCE",  "Restoring notes array list ...");
-
-            int sz = savedInstanceState.getInt("SIZE");
-
-            try
-            {
-                for(int i=0; i<sz; i++)
-                {
-                    mReceivedNotebook.getNotes().getValue().add(((ArrayList<Note>) savedInstanceState.get("NOTES")).get(i));
-                }
-            }
-            catch(IndexOutOfBoundsException e)
-            {
-                e.printStackTrace();
-            }
-
-            mNotesViewAdapter.notifyDataSetChanged();
-            mNotesView.setAdapter(mNotesViewAdapter);
-        }
-        else
-        {
-            //loadAllNotes.execute();
-        }
+//        if(savedInstanceState != null)
+//        {
+//            Log.d("RESTORE_INSTANCE",  "Restoring notes array list ...");
+//
+//            int sz = savedInstanceState.getInt("SIZE");
+//
+//            try
+//            {
+//                for(int i=0; i<sz; i++)
+//                {
+//                    mReceivedNotebook.getNotes().getValue().add(((ArrayList<Note>) savedInstanceState.get("NOTES")).get(i));
+//                }
+//            }
+//            catch(IndexOutOfBoundsException e)
+//            {
+//                e.printStackTrace();
+//            }
+//
+//            mNotesViewAdapter.notifyDataSetChanged();
+//            mNotesView.setAdapter(mNotesViewAdapter);
+//        }
+//        else
+//        {
+//            //loadAllNotes.execute();
+//        }
 
 //        Thread t = new Thread(createTestNotes);
 //        t.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
@@ -271,12 +294,6 @@ public class NotesView extends LifecycleActivity
         super.onDestroy();
 
         Log.d("DEBUG", "ON_DESTROY");
-
-
-        if(loadAllNotes.getStatus() == AsyncTask.Status.RUNNING)
-        {
-            loadAllNotes.cancel(true);
-        }
     }
 
     @Override
@@ -463,5 +480,10 @@ public class NotesView extends LifecycleActivity
     public RecyclerView getNotesView()
     {
         return mNotesView;
+    }
+
+    @Override
+    public LifecycleRegistry getLifecycle() {
+        return mRegistry;
     }
 }

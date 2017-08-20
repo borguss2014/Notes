@@ -31,7 +31,7 @@ public class AddNotebookDBTask extends AsyncTask<Notebook, Void, Void>
     @Override
     protected Void doInBackground(Notebook... notebook)
     {
-        mObserver.getAddNotebookResult().postValue(mNotebookDao.addNotebook(notebook[0]));
+        mObserver.getQueryResult().postValue(mNotebookDao.addNotebook(notebook[0]));
         return null;
     }
 }

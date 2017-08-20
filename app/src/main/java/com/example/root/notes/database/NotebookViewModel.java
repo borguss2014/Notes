@@ -14,14 +14,14 @@ import java.util.List;
 public class NotebookViewModel extends AndroidViewModel
 {
     private LiveData<List<Notebook>> notebooksList;
-    private AppDatabase appDatabase;
+    private AppDatabase mAppDatabase;
 
     public NotebookViewModel(Application application)
     {
         super(application);
 
-        appDatabase = AppDatabase.getDatabase(this.getApplication());
-        notebooksList = appDatabase.notebookModel().getAllNotebooks();
+        mAppDatabase = AppDatabase.getDatabase(this.getApplication());
+        notebooksList = mAppDatabase.notebookModel().getAllNotebooks();
     }
 
     public LiveData<List<Notebook>> getNotebooksList()

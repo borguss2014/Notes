@@ -17,13 +17,15 @@ import java.util.List;
 
 public class NoteViewModel extends AndroidViewModel
 {
-    private final LiveData<List<Note>> notesList;
+    private AppDatabase mAppDatabase;
+    private LiveData<List<Note>> notesList;
 
-    public NoteViewModel(Application application, LiveData<List<Note>> notesList)
+    public NoteViewModel(Application application, int notebookId)
     {
         super(application);
 
-        this.notesList = notesList;
+        mAppDatabase = AppDatabase.getDatabase(this.getApplication());
+        notesList = mAppDatabase.noteModel().getNotesForNotebook(notebookId);
     }
 
     public LiveData<List<Note>> getNotesList()
@@ -36,17 +38,17 @@ public class NoteViewModel extends AndroidViewModel
         @NonNull
         private final Application mApplication;
 
-        private final LiveData<List<Note>> notesList;
+        private int mNotebookId;
 
-        public Factory(@NonNull Application application, LiveData<List<Note>> notesList) {
+        public Factory(@NonNull Application application, int notebookId) {
             mApplication = application;
-            this.notesList = notesList;
+            mNotebookId = notebookId;
         }
 
         @Override
         public <T extends ViewModel> T create(Class<T> modelClass) {
             //noinspection unchecked
-            return (T) new NoteViewModel(mApplication, notesList);
+            return (T) new NoteViewModel(mApplication, mNotebookId);
         }
     }
 }

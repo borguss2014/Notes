@@ -114,7 +114,7 @@ public class NotebooksView extends AppCompatActivity implements LifecycleRegistr
         });
 
         mQueryResultObserver = ViewModelProviders.of(this).get(QueryResultObserver.class);
-        mQueryResultObserver.getAddNotebookResult().observe(NotebooksView.this, new Observer<Long>() {
+        mQueryResultObserver.getQueryResult().observe(NotebooksView.this, new Observer<Long>() {
             @Override
             public void onChanged(@Nullable Long aLong) {
                 if(aLong != null && aLong != -1)
@@ -199,7 +199,7 @@ public class NotebooksView extends AppCompatActivity implements LifecycleRegistr
                 //setTempNotes(notebook.getNotes());
 
                 Intent notesView = new Intent(getApplicationContext(), NotesView.class);
-                notesView.putExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, notebook);
+                notesView.putExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, notebook.getId());
 
                 startActivityForResult(notesView, Attributes.ActivityMessageType.NOTES_LIST_ACTIVITY);
             }
