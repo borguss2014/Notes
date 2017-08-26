@@ -6,6 +6,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.example.root.notes.model.Note;
 
@@ -33,20 +34,23 @@ public class NoteViewModel extends AndroidViewModel
         return notesList;
     }
 
-    public static class Factory extends ViewModelProvider.NewInstanceFactory {
+    public static class Factory extends ViewModelProvider.NewInstanceFactory
+    {
 
         @NonNull
         private final Application mApplication;
 
         private int mNotebookId;
 
-        public Factory(@NonNull Application application, int notebookId) {
+        public Factory(@NonNull Application application, int notebookId)
+        {
             mApplication = application;
             mNotebookId = notebookId;
         }
 
         @Override
-        public <T extends ViewModel> T create(Class<T> modelClass) {
+        public <T extends ViewModel> T create(Class<T> modelClass)
+        {
             //noinspection unchecked
             return (T) new NoteViewModel(mApplication, mNotebookId);
         }

@@ -2,6 +2,7 @@ package com.example.root.notes.views;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -19,13 +20,14 @@ import com.example.root.notes.R;
 import com.example.root.notes.util.Utilities;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-public class NoteEditorView extends AppCompatActivity {
-
+public class NoteEditorView extends AppCompatActivity
+{
     private EditText            mEditTextTitle;
     private DottedLineEditText mDLEditTextContent;
 
@@ -33,7 +35,7 @@ public class NoteEditorView extends AppCompatActivity {
     private boolean             mNewNote;
     private boolean             mNoteAltered;
 
-    private Note mReceivedNote;
+    private Note                mReceivedNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -49,7 +51,7 @@ public class NoteEditorView extends AppCompatActivity {
 
         mReceivedNote = (Note) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY);
 
-        if(mReceivedNote != null)
+        if(mReceivedNote != null && mReceivedNote.getNotebookId() != -1)
         {
             Log.d("NOTE_ACTIVITY", "NOT NEW NOTE");
             mNewNote = false;
@@ -65,69 +67,79 @@ public class NoteEditorView extends AppCompatActivity {
             Log.d("NOTE_ACTIVITY", "NEW NOTE");
             mNewNote = true;
 
-//            mReceivedNote = new Note();
+            if(mReceivedNote.getNotebookId() == -1)
+            {
+                mReceivedNote = new Note();
+            }
 //            mReceivedNote.setFileName(Utilities.generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
         }
 
-        mEditTextTitle.addTextChangedListener(new TextWatcher() {
+        mEditTextTitle.addTextChangedListener(new TextWatcher()
+        {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after)
+            {
 
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(CharSequence s, int start, int before, int count)
+            {
                 Log.d("OnTextChanged", "Text changed title");
-
-//                if(!mNewNote) {
-//                    Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
-//                    if (!mReceivedNote.isEqual(currentContent)) {
-//                        //Note altered
-//                        mNoteAltered = true;
-//                        invalidateOptionsMenu();
-//                    }
-//                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        mDLEditTextContent.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                Log.d("OnTextChanged", "Text changed content");
 
                 if(!mNewNote)
                 {
-//                    Note currentContent = new Note(mEditTextTitle.getText().toString(), mDLEditTextContent.getText().toString());
-//                    if (!mReceivedNote.isEqual(currentContent)) {
-//                        //Note altered
-//                        mNoteAltered = true;
-//                        invalidateOptionsMenu();
-//                    }
+                    if(!mEditTextTitle.getText().toString().equals(mReceivedNote.getTitle()) ||
+                            !mDLEditTextContent.getText().toString().equals(mReceivedNote.getContent()))
+                    {
+                        //Note altered
+                        mNoteAltered = true;
+                        invalidateOptionsMenu();
+                    }
                 }
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
+            public void afterTextChanged(Editable s)
+            {
+
+            }
+        });
+
+        mDLEditTextContent.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after)
+            {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count)
+            {
+                Log.d("OnTextChanged", "Text changed content");
+
+                if(!mEditTextTitle.getText().toString().equals(mReceivedNote.getTitle()) ||
+                        !mDLEditTextContent.getText().toString().equals(mReceivedNote.getContent()))
+                {
+                    //Note altered
+                    mNoteAltered = true;
+                    invalidateOptionsMenu();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
 
             }
         });
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onDestroy()
+    {
         super.onDestroy();
-
-
     }
 
     @Override
@@ -157,42 +169,46 @@ public class NoteEditorView extends AppCompatActivity {
             {
                 Log.d("NOTE_ACTIVITY", "SAVING NOTE");
 
-                Calendar calendar  = new GregorianCalendar(TimeZone.getDefault());
-                calendar.setTime(new Date());
+                int resultCode = -1;
 
-//                DateTime currentDate = Utilities.getCurrentDateTime(calendar);
-//
-//                int resultCode;
-//
-//                if(note_title.isEmpty())
-//                {
-//                    mReceivedNote.setTitle("Untitled");
-//                }
-//                else
-//                {
-//                    mReceivedNote.setTitle(note_title);
-//                }
-//
-//                if(mNewNote)
-//                {
-//                    mReceivedNote.setCreationDate(currentDate);
-//
-//                    resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
-//                }
-//                else
-//                {
-//                    mReceivedNote.setModificationDate(currentDate);
-//
-//                    resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
-//                }
+                if (note_title.isEmpty())
+                {
+                    mReceivedNote.setTitle("Untitled");
+                }
+                else
+                {
+                    mReceivedNote.setTitle(note_title);
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                {
+                    LocalDateTime currentDate = Utilities.getCurrentDateTime();
+
+                    if (mNewNote)
+                    {
+                        mReceivedNote.setCreationDate(currentDate);
+
+                        resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
+                    }
+                    else
+                    {
+                        mReceivedNote.setModificationDate(currentDate);
+
+                        resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
+                    }
+
+                    Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
+                }
 
                 mReceivedNote.setContent(note_content);
 
                 Intent resultIntent = new Intent();
 
-                resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, (Serializable) mReceivedNote);
+                resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, mReceivedNote);
 
-                //setResult(resultCode, resultIntent);
+                Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
+
+                setResult(resultCode, resultIntent);
 
                 finish();
                 return true;

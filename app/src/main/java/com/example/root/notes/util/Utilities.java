@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
@@ -231,6 +233,12 @@ public class Utilities {
         } else {
             return DateUtils.formatDateTime(context, time, 0);
         }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    public static LocalDateTime getCurrentDateTime()
+    {
+        return LocalDateTime.now();
     }
 
 }

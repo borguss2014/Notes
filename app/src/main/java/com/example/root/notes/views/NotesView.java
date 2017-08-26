@@ -1,17 +1,16 @@
 package com.example.root.notes.views;
 
-import android.arch.lifecycle.LifecycleActivity;
 import android.arch.lifecycle.LifecycleRegistry;
 import android.arch.lifecycle.LifecycleRegistryOwner;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.arch.persistence.room.Database;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,10 +20,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.example.root.notes.async_tasks.note.AddNoteDBTask;
+import com.example.root.notes.async_tasks.note.DeleteNoteDBTask;
+import com.example.root.notes.async_tasks.note.PurgeNotesDBTask;
 import com.example.root.notes.async_tasks.note.RetrieveNotebookDBTask;
+import com.example.root.notes.async_tasks.note.UpdateNoteDBTask;
 import com.example.root.notes.database.AppDatabase;
 import com.example.root.notes.database.DatabaseCreator;
 import com.example.root.notes.database.NoteViewModel;
+import com.example.root.notes.database.QueryResultLiveData;
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.util.Comparison;
 import com.example.root.notes.functionality.IOHandler;
@@ -33,10 +37,6 @@ import com.example.root.notes.model.Notebook;
 import com.example.root.notes.functionality.NotesAdapter;
 import com.example.root.notes.R;
 import com.example.root.notes.util.Utilities;
-import com.example.root.notes.async_tasks.note.AddNoteFileTask;
-import com.example.root.notes.async_tasks.note.DeleteNoteTask;
-import com.example.root.notes.async_tasks.note.LoadNotesTask;
-import com.example.root.notes.async_tasks.note.ModifyNoteTask;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -58,11 +58,15 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
     private RecyclerView                mNotesView;
     private AppDatabase                 mAppDatabase;
     private String                      notesDirPath;
-    private Note                        mReceivedNote;
+    private Note                        mReceivedNoteFromEditor;
     private NoteViewModel               notesViewModel;
     private Notebook                    mReceivedNotebook;
     private NotesAdapter                mNotesViewAdapter;
     private int                         mReceivedNotebookID;
+
+    private QueryResultLiveData         mNoteAddQueryResultViewModel;
+    private QueryResultLiveData         mNoteDeleteQueryResultViewModel;
+    private QueryResultLiveData         mNoteUpdateQueryResultViewModel;
 
     private final IOHandler mHandler = new IOHandler(this);
 
@@ -97,11 +101,11 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
         Log.d("NotesOnCreate", "Received notebook id: " + Integer.toString(mReceivedNotebookID));
 
         RetrieveNotebookDBTask retrieveNotebook = new RetrieveNotebookDBTask(mAppDatabase.noteModel());
-        try {
+        try
+        {
             mReceivedNotebook = retrieveNotebook.execute(mReceivedNotebookID).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException  | ExecutionException e)
+        {
             e.printStackTrace();
         }
 
@@ -118,6 +122,129 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
                 Log.d("NotesOnCreate", "Notes view model changed ... updating");
                 mNotesViewAdapter.clear();
                 mNotesViewAdapter.addItems(notes);
+                mNotesViewAdapter.notifyDataSetChanged();
+            }
+        });
+
+        mNoteAddQueryResultViewModel = new QueryResultLiveData();
+        mNoteUpdateQueryResultViewModel = new QueryResultLiveData();
+        mNoteDeleteQueryResultViewModel = new QueryResultLiveData();
+
+        mNoteAddQueryResultViewModel.observe(NotesView.this, new Observer<Object>() {
+            @Override
+            public void onChanged(@Nullable Object queryResult) {
+                Log.d("QueryResultObserver", "Add Query Result Observer");
+
+                if(queryResult != null && !queryResult.equals(-1))
+                {
+                    Snackbar.make(mNotesView, "Note added", Snackbar.LENGTH_LONG)
+                            .setAction("Open note", new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View view)
+                                {
+                                    openNote(mReceivedNoteFromEditor);
+                                }
+                            }).show();
+                }
+                else if(queryResult != null && queryResult.equals(-1))
+                {
+                    Snackbar.make(mNotesView, "Error : Note insertion rejected", Snackbar.LENGTH_LONG)
+                            .setAction("Retry", new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View view)
+                                {
+                                    new AddNoteDBTask(mAppDatabase.noteModel(), mNoteAddQueryResultViewModel)
+                                            .execute(mReceivedNoteFromEditor);
+                                }
+                            }).show();
+                }
+                else if(queryResult == null)
+                {
+                    Snackbar.make(mNotesView, "Error : An issue has occurred", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+            }
+        });
+
+        mNoteUpdateQueryResultViewModel.observe(NotesView.this, new Observer<Object>() {
+            @Override
+            public void onChanged(@Nullable Object queryResult)
+            {
+                Log.d("QueryResultObserver", "Update Query Result Observer");
+
+                if(queryResult != null && !queryResult.equals(-1))
+                {
+                    Snackbar.make(mNotesView, "Note updated", Snackbar.LENGTH_LONG)
+                            .setAction("Open note", new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View view)
+                                {
+                                    openNote(mReceivedNoteFromEditor);
+                                }
+                            }).show();
+                }
+                else if(queryResult != null && queryResult.equals(-1))
+                {
+                    Snackbar.make(mNotesView, "Error : Note update rejected", Snackbar.LENGTH_LONG)
+                            .setAction("Retry", new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View view)
+                                {
+                                    new UpdateNoteDBTask(mAppDatabase.noteModel(), mNoteUpdateQueryResultViewModel)
+                                            .execute(mReceivedNoteFromEditor);
+                                }
+                            }).show();
+                }
+                else if(queryResult == null)
+                {
+                    Snackbar.make(mNotesView, "Error : An issue has occurred", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+            }
+        });
+
+
+        mNoteDeleteQueryResultViewModel.observe(NotesView.this, new Observer<Object>() {
+            @Override
+            public void onChanged(@Nullable Object queryResult)
+            {
+                Log.d("QueryResultObserver", "Delete Query Result Observer");
+
+                if(queryResult != null && !queryResult.equals(-1))
+                {
+                    Snackbar.make(mNotesView, "Note deleted", Snackbar.LENGTH_LONG)
+                            .setAction("Revert", new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View view)
+                                {
+                                    new AddNoteDBTask(mAppDatabase.noteModel(), mNoteAddQueryResultViewModel)
+                                            .execute(mReceivedNoteFromEditor);
+                                }
+                            }).show();
+                }
+                else if(queryResult != null && queryResult.equals(-1))
+                {
+                    Snackbar.make(mNotesView, "Error : Note deletion rejected", Snackbar.LENGTH_LONG)
+                            .setAction("Retry", new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View view)
+                                {
+                                    new DeleteNoteDBTask(mAppDatabase.noteModel(), mNoteDeleteQueryResultViewModel)
+                                            .execute(mReceivedNoteFromEditor);
+                                }
+                            }).show();
+                }
+                else if(queryResult == null)
+                {
+                    Snackbar.make(mNotesView, "Error : An issue has occured", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
             }
         });
 
@@ -164,14 +291,11 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
                     mClickedNotePosition = item_position;
 
                     Note note = mNotesViewAdapter.getItemAtPosition(item_position);
-                    Log.d("NOTE ON CLICK", note.getFileName());
-//                    Log.d("NOTE CLICK CR DATE", note.getCreationDate().toString());
-//                    Log.d("NOTE CLICK MOD DATE", note.getModificationDate().toString());
 
-                    Intent modifyNoteIntent = new Intent(getApplicationContext(), NoteEditorView.class);
-                    modifyNoteIntent.putExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY, (Serializable) note);
+                    Log.d("NOTE ON CLICK", note.getTitle());
+                    Log.d("NOTE ON CLICK", Integer.toString(note.getNotebookId()));
 
-                    startActivityForResult(modifyNoteIntent, Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY);
+                    openNote(note);
                 }
                 else
                 {
@@ -255,8 +379,8 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putSerializable("NOTES", (Serializable) mReceivedNotebook.getNotes().getValue());
-        outState.putInt("SIZE", mReceivedNotebook.getNotes().getValue().size());
+//        outState.putSerializable("NOTES", (Serializable) mReceivedNotebook.getNotes().getValue());
+//        outState.putInt("SIZE", mReceivedNotebook.getNotes().getValue().size());
     }
 
     @Override
@@ -318,10 +442,12 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
                 createNote();
                 return true;
             case R.id.action_main_purge:
-                Utilities.deleteAllFiles(getApplicationContext());
-                mReceivedNotebook.getNotes().getValue().clear();
-                mNotesViewAdapter.notifyDataSetChanged();
+                //Utilities.deleteAllFiles(getApplicationContext());
+
+                new PurgeNotesDBTask(mAppDatabase.noteModel()).execute();
+
                 Log.d("MAIN_ACTIVITY_PURGE", "Notes purged");
+
                 return true;
             case R.id.action_main_select_delete:
 
@@ -331,11 +457,13 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
                 {
                     Note note = mNotesViewAdapter.getItemAtPosition(mSelectedItems.get(pos));
 
-                    String notePath = notesDirPath.concat(File.separator.concat(note.getFileName()));
+                    //String notePath = notesDirPath.concat(File.separator.concat(note.getFileName()));
 
-                    Utilities.deleteFile(notePath);
+                    //Utilities.deleteFile(notePath);
 
-                    mReceivedNotebook.getNotes().getValue().remove(mReceivedNotebook.getNotes().getValue().indexOf(note));
+                    //mReceivedNotebook.getNotes().getValue().remove(mReceivedNotebook.getNotes().getValue().indexOf(note));
+
+                    new DeleteNoteDBTask(mAppDatabase.noteModel(), null).execute(note);
 
                     for(int decrement = pos+1; decrement< mSelectedItems.size(); decrement++)
                     {
@@ -374,16 +502,16 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        String notePath = "";
+        //String notePath = "";
 
         if(requestCode == Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY && data != null)
         {
-            mReceivedNote = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY);
+            mReceivedNoteFromEditor = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY);
 
-            if(mReceivedNote != null)
-            {
-                notePath = notesDirPath.concat(File.separator.concat(mReceivedNote.getFileName()));
-            }
+//            if(mReceivedNoteFromEditor != null)
+//            {
+//                notePath = notesDirPath.concat(File.separator.concat(mReceivedNote.getFileName()));
+//            }
 
             switch(resultCode)
             {
@@ -391,23 +519,32 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "New note result");
 
-                    AddNoteFileTask addNote = new AddNoteFileTask(mReceivedNote, notePath);
-                    addNote.setNotesList(mReceivedNotebook.getNotes().getValue());
-                    addNote.setHandler(mHandler);
+//                    AddNoteFileTask addNote = new AddNoteFileTask(mReceivedNote, notePath);
+//                    addNote.setNotesList(mReceivedNotebook.getNotes().getValue());
+//                    addNote.setHandler(mHandler);
+//
+//                    addNote.execute();
 
-                    addNote.execute();
+                    mReceivedNoteFromEditor.setNotebookId(mReceivedNotebookID);
 
+                    new AddNoteDBTask(mAppDatabase.noteModel(), mNoteAddQueryResultViewModel)
+                            .execute(mReceivedNoteFromEditor);
                     break;
                 }
                 case Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT:
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Overwrite note result");
 
-                    ModifyNoteTask modifyNote = new ModifyNoteTask(mReceivedNote, notePath, mClickedNotePosition);
-                    modifyNote.setNotesList(mReceivedNotebook.getNotes().getValue());
-                    modifyNote.setHandler(mHandler);
+//                    ModifyNoteTask modifyNote = new ModifyNoteTask(mReceivedNote, notePath, mClickedNotePosition);
+//                    modifyNote.setNotesList(mReceivedNotebook.getNotes().getValue());
+//                    modifyNote.setHandler(mHandler);
+//
+//                    modifyNote.execute();
 
-                    modifyNote.execute();
+                    mReceivedNoteFromEditor.setNotebookId(mReceivedNotebookID);
+
+                    new UpdateNoteDBTask(mAppDatabase.noteModel(), mNoteUpdateQueryResultViewModel)
+                            .execute(mReceivedNoteFromEditor);
 
                     break;
                 }
@@ -415,15 +552,22 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
                 {
                     Log.d("MAIN_ACTIVITY_RESULT", "Delete note result");
 
-                    Note toBeDeletedNote = mReceivedNotebook.getNotes().getValue().get(mClickedNotePosition);
+                    //Note toBeDeletedNote = mReceivedNotebook.getNotes().getValue().get(mClickedNotePosition);
 
-                    notePath = notesDirPath.concat(File.separator.concat(toBeDeletedNote.getFileName()));
+//                    notePath = notesDirPath.concat(File.separator.concat(toBeDeletedNote.getFileName()));
+//
+//                    DeleteNoteTask deleteNote = new DeleteNoteTask(notePath, mClickedNotePosition);
+//                    deleteNote.setNotesList(mReceivedNotebook.getNotes().getValue());
+//                    deleteNote.setHandler(mHandler);
+//
+//                    deleteNote.execute();
 
-                    DeleteNoteTask deleteNote = new DeleteNoteTask(notePath, mClickedNotePosition);
-                    deleteNote.setNotesList(mReceivedNotebook.getNotes().getValue());
-                    deleteNote.setHandler(mHandler);
+                    Note toBeDeletedNote = mNotesViewAdapter.getItemAtPosition(mClickedNotePosition);
 
-                    deleteNote.execute();
+                    new DeleteNoteDBTask(mAppDatabase.noteModel(), mNoteDeleteQueryResultViewModel)
+                            .execute(toBeDeletedNote);
+
+                    mReceivedNoteFromEditor = toBeDeletedNote;
 
                     break;
                 }
@@ -433,8 +577,9 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
 
     private void createNote()
     {
-        Intent createNoteIntent = new Intent(getApplicationContext(), NoteEditorView.class);
-        startActivityForResult(createNoteIntent, Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY);
+        Note newNote = new Note();
+
+        openNote(newNote);
     }
 
     public static ArrayList<Integer> retrieveSelectedItems()
@@ -469,17 +614,25 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
 
     public void setReceivedNote(Note note)
     {
-        mReceivedNote = note;
+        mReceivedNoteFromEditor = note;
     }
 
     public Note getReceivedNote()
     {
-        return mReceivedNote;
+        return mReceivedNoteFromEditor;
     }
 
     public RecyclerView getNotesView()
     {
         return mNotesView;
+    }
+
+    public void openNote(Note note)
+    {
+        Intent noteIntent = new Intent(getApplicationContext(), NoteEditorView.class);
+        noteIntent.putExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY, (Serializable) note);
+
+        startActivityForResult(noteIntent, Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY);
     }
 
     @Override

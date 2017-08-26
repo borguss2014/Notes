@@ -28,7 +28,7 @@ import com.example.root.notes.async_tasks.notebook.PurgeNotebooksDBTask;
 import com.example.root.notes.database.AppDatabase;
 import com.example.root.notes.database.DatabaseCreator;
 import com.example.root.notes.database.NotebookViewModel;
-import com.example.root.notes.database.QueryResultObserver;
+import com.example.root.notes.database.QueryResultLiveData;
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.model.Notebook;
 import com.example.root.notes.functionality.NotebooksAdapter;
@@ -51,7 +51,7 @@ public class NotebooksView extends AppCompatActivity implements LifecycleRegistr
     private LoadNotebooksTask               loadAllNotebooks;
     private String                          dialogNotebookName;
     private NotebookViewModel               mNotebooksViewModel;
-    private QueryResultObserver             mQueryResultObserver;
+    private QueryResultLiveData             mQueryResultLiveData;
     private NotebooksAdapter                mNotebooksViewAdapter;
 
     //private static ArrayList<Note> mNotesTemp;
@@ -113,11 +113,11 @@ public class NotebooksView extends AppCompatActivity implements LifecycleRegistr
             }
         });
 
-        mQueryResultObserver = ViewModelProviders.of(this).get(QueryResultObserver.class);
-        mQueryResultObserver.getQueryResult().observe(NotebooksView.this, new Observer<Long>() {
+        mQueryResultLiveData = new QueryResultLiveData();
+        mQueryResultLiveData.observe(NotebooksView.this, new Observer<Object>() {
             @Override
-            public void onChanged(@Nullable Long aLong) {
-                if(aLong != null && aLong != -1)
+            public void onChanged(@Nullable Object queryResult) {
+                if(queryResult != null && !queryResult.equals(-1))
                 {
                     Snackbar.make(mNotebooksView, "Notebook added", Snackbar.LENGTH_LONG)
                             .setAction("Open notebook", new View.OnClickListener()
@@ -129,7 +129,7 @@ public class NotebooksView extends AppCompatActivity implements LifecycleRegistr
                                 }
                             }).show();
                 }
-                else if(aLong != null && aLong == -1)
+                else if(queryResult != null && queryResult.equals(-1))
                 {
                     Snackbar.make(mNotebooksView, "Error : Notebook insertion rejected", Snackbar.LENGTH_LONG)
                             .setAction("Retry", new View.OnClickListener()
@@ -141,7 +141,7 @@ public class NotebooksView extends AppCompatActivity implements LifecycleRegistr
                                 }
                             }).show();
                 }
-                else if(aLong == null)
+                else if(queryResult == null)
                 {
                     Snackbar.make(mNotebooksView, "Error : An issue has occured", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
@@ -398,7 +398,7 @@ public class NotebooksView extends AppCompatActivity implements LifecycleRegistr
 //                addNotebook.execute();
 
                 Notebook newNotebook = new Notebook(dialogNotebookName);
-                new AddNotebookDBTask(appDatabase.notebookModel(), mQueryResultObserver).execute(newNotebook);
+                new AddNotebookDBTask(appDatabase.notebookModel(), mQueryResultLiveData).execute(newNotebook);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()

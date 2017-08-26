@@ -17,40 +17,63 @@ import java.util.Date;
  * TODO: Add a class header comment!
  */
 
-@Entity(tableName = "notes")
+@Entity(tableName = Note.TABLE_NAME)
 public class Note implements Serializable
 {
+    public final static String TABLE_NAME = "notes";
+    public final static String NOTE_NAME = "note_title";
+    public final static String NOTE_CONTENT = "note_content";
+    public final static String NOTEBOOK_ID = "notebook_id";
+    public final static String NOTE_CREATION_DATE = "note_creation_date";
+    public final static String NOTE_MODIFICATION_DATE = "note_modification_date";
+
     @PrimaryKey(autoGenerate = true)
     private int         id;
 
-    @ColumnInfo(name = "note_title")
+    @ColumnInfo(name = Note.NOTE_NAME)
     private String      mTitle;
 
-    @ColumnInfo(name = "note_content")
+    @ColumnInfo(name = Note.NOTE_CONTENT)
     private String      mContent;
 
     @Ignore
     private String      mFileName;
 
-    @ColumnInfo(name = "notebook_id")
+    @ColumnInfo(name = Note.NOTEBOOK_ID)
     private int      mNotebookId;
 
-    @ColumnInfo(name = "note_creation_date")
+    @ColumnInfo(name = Note.NOTE_CREATION_DATE)
     @TypeConverters(DateConverter.class)
     private LocalDateTime mCreationDate;
 
-    @ColumnInfo(name = "note_modification_date")
+    @ColumnInfo(name = Note.NOTE_MODIFICATION_DATE)
     @TypeConverters(DateConverter.class)
     private LocalDateTime mModificationDate;
 
+
+    @Ignore
+    public Note()
+    {
+        mFileName          = "";
+
+        mNotebookId        = -1;
+
+        mTitle             = "placeholder";
+        mContent           = "placeholder";
+
+        mCreationDate      = null;
+        mModificationDate  = null;
+    }
 
     public Note(String title, String content, LocalDateTime creationDate, LocalDateTime modificationDate, int notebookId)
     {
         mFileName         = "";
 
+        mNotebookId       = notebookId;
+
         mTitle            = title;
         mContent          = content;
-        mNotebookId       = notebookId;
+
         mCreationDate     = creationDate;
         mModificationDate = modificationDate;
     }

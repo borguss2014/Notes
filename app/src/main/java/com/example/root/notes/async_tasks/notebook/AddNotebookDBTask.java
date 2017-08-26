@@ -2,7 +2,7 @@ package com.example.root.notes.async_tasks.notebook;
 
 import android.os.AsyncTask;
 import com.example.root.notes.NotebookDao;
-import com.example.root.notes.database.QueryResultObserver;
+import com.example.root.notes.database.QueryResultLiveData;
 import com.example.root.notes.model.Notebook;
 
 /**
@@ -12,12 +12,12 @@ import com.example.root.notes.model.Notebook;
 public class AddNotebookDBTask extends AsyncTask<Notebook, Void, Void>
 {
     private NotebookDao mNotebookDao;
-    private QueryResultObserver mObserver;
+    private QueryResultLiveData mObservableData;
 
-    public AddNotebookDBTask(NotebookDao notebookDao, QueryResultObserver observer)
+    public AddNotebookDBTask(NotebookDao notebookDao, QueryResultLiveData observableData)
     {
         mNotebookDao = notebookDao;
-        mObserver = observer;
+        mObservableData = observableData;
     }
 
     @Override
@@ -31,7 +31,7 @@ public class AddNotebookDBTask extends AsyncTask<Notebook, Void, Void>
     @Override
     protected Void doInBackground(Notebook... notebook)
     {
-        mObserver.getQueryResult().postValue(mNotebookDao.addNotebook(notebook[0]));
+        mObservableData.postValue(mNotebookDao.addNotebook(notebook[0]));
         return null;
     }
 }
