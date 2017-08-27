@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -92,6 +93,16 @@ public class NotesView extends AppCompatActivity implements LifecycleRegistryOwn
         Log.d("DEBUG", "NOTES_ON_CREATE");
 
         setTitle("Notes");
+
+        FloatingActionButton floatingActionButton = findViewById(R.id.floating_action_add_note);
+        floatingActionButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                createNote();
+            }
+        });
 
         mAppDatabase = DatabaseCreator.getInstance().getDatabase();
 

@@ -44,11 +44,11 @@ public class NotebooksView extends AppCompatActivity implements LifecycleRegistr
 
     private final LifecycleRegistry mRegistry = new LifecycleRegistry(this);
 
+//    private String                          notebooksDirPath;
+//    private LoadNotebooksTask               loadAllNotebooks;
     private WeakReference<NotebooksView>    context;
     private AppDatabase                     appDatabase;
     private RecyclerView                    mNotebooksView;
-    private String                          notebooksDirPath;
-    private LoadNotebooksTask               loadAllNotebooks;
     private String                          dialogNotebookName;
     private NotebookViewModel               mNotebooksViewModel;
     private QueryResultLiveData             mQueryResultLiveData;
