@@ -21,7 +21,7 @@ public interface NotebookDao
 {
     //If it returns LiveData, then Room is running the query asynchronously
     @Query("SELECT * FROM " + Notebook.TABLE_NAME)
-    LiveData<List<Notebook>> getAllNotebooks();
+    List<Notebook> getAllNotebooks();
 
     @Query("DELETE FROM " + Notebook.TABLE_NAME)
     void deleteAllNotebooks();

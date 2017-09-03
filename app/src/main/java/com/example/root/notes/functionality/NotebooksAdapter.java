@@ -135,10 +135,18 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
     public void addItems(List<Notebook> newDataSet)
     {
         mDataSet.addAll(newDataSet);
+        notifyDataSetChanged();
+    }
+
+    public void addItem(Notebook notebook)
+    {
+        mDataSet.add(notebook);
+        notifyDataSetChanged();
     }
 
     public void clear()
     {
         mDataSet.clear();
+        notifyDataSetChanged();
     }
 }

@@ -36,6 +36,12 @@ public class Notebook implements Serializable
     @Ignore
     private MutableLiveData<List<Note>> mNotes = new MutableLiveData<>();
 
+    @Ignore
+    public Notebook()
+    {
+        mName = "";
+    }
+
     public Notebook(String name)
     {
         mName = name;

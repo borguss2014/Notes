@@ -3,6 +3,7 @@ package com.example.root.notes.views;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 
 import com.example.root.notes.util.Attributes;
@@ -28,20 +30,35 @@ import java.util.TimeZone;
 
 public class NoteEditorView extends AppCompatActivity
 {
-    private EditText            mEditTextTitle;
-    private DottedLineEditText mDLEditTextContent;
+    private EditText                mEditTextTitle;
+    private DottedLineEditText      mDLEditTextContent;
 
-    private boolean             mEdit;
-    private boolean             mNewNote;
-    private boolean             mNoteAltered;
+    private boolean                 mEdit;
+    private boolean                 mNewNote;
+    private boolean                 mNoteAltered;
 
-    private Note                mReceivedNote;
+    private Note                    mReceivedNote;
+
+    private FloatingActionButton    floatingActionButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_editor);
+
+        floatingActionButton = findViewById(R.id.floating_action_save_note);
+        floatingActionButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                String note_title = mEditTextTitle.getText().toString().trim();
+                String note_content = mDLEditTextContent.getText().toString().trim();
+
+                saveNote(note_title, note_content);
+            }
+        });
 
         mEdit = false;
         mNoteAltered = false;
@@ -61,6 +78,10 @@ public class NoteEditorView extends AppCompatActivity
 
             enableEditText(mEditTextTitle, false);
             enableEditText(mDLEditTextContent, false);
+
+            setTitle("Edit note");
+
+            floatingActionButton.hide();
         }
         else
         {
@@ -72,6 +93,8 @@ public class NoteEditorView extends AppCompatActivity
                 mReceivedNote = new Note();
             }
 //            mReceivedNote.setFileName(Utilities.generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
+
+            setTitle("New note");
         }
 
         mEditTextTitle.addTextChangedListener(new TextWatcher()
@@ -167,50 +190,7 @@ public class NoteEditorView extends AppCompatActivity
         {
             case R.id.action_notes_save_note:
             {
-                Log.d("NOTE_ACTIVITY", "SAVING NOTE");
-
-                int resultCode = -1;
-
-                if (note_title.isEmpty())
-                {
-                    mReceivedNote.setTitle("Untitled");
-                }
-                else
-                {
-                    mReceivedNote.setTitle(note_title);
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                {
-                    LocalDateTime currentDate = Utilities.getCurrentDateTime();
-
-                    if (mNewNote)
-                    {
-                        mReceivedNote.setCreationDate(currentDate);
-
-                        resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
-                    }
-                    else
-                    {
-                        mReceivedNote.setModificationDate(currentDate);
-
-                        resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
-                    }
-
-                    Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
-                }
-
-                mReceivedNote.setContent(note_content);
-
-                Intent resultIntent = new Intent();
-
-                resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, mReceivedNote);
-
-                Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
-
-                setResult(resultCode, resultIntent);
-
-                finish();
+                saveNote(note_title, note_content);
                 return true;
             }
             case R.id.action_notes_edit_note:
@@ -249,6 +229,8 @@ public class NoteEditorView extends AppCompatActivity
             {
                 //Allow user to save the modified note
                 item.setEnabled(true);
+                floatingActionButton.show();
+
             }
             else
             {
@@ -270,5 +252,53 @@ public class NoteEditorView extends AppCompatActivity
             edit.setEnabled(false);
             edit.setTextColor(Color.argb(255, 0, 0, 0));
         }
+    }
+
+    private void saveNote(String noteTitle, String noteContent)
+    {
+        Log.d("NOTE_ACTIVITY", "SAVING NOTE");
+
+        int resultCode = -1;
+
+        if (noteTitle.isEmpty())
+        {
+            mReceivedNote.setTitle("Untitled");
+        }
+        else
+        {
+            mReceivedNote.setTitle(noteTitle);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+            LocalDateTime currentDate = Utilities.getCurrentDateTime();
+
+            if (mNewNote)
+            {
+                mReceivedNote.setCreationDate(currentDate);
+
+                resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
+            }
+            else
+            {
+                mReceivedNote.setModificationDate(currentDate);
+
+                resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
+            }
+
+            Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
+        }
+
+        mReceivedNote.setContent(noteContent);
+
+        Intent resultIntent = new Intent();
+
+        resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, mReceivedNote);
+
+        Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
+
+        setResult(resultCode, resultIntent);
+
+        finish();
     }
 }
