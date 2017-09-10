@@ -32,10 +32,11 @@ public class RetrieveNotebookDBTask extends AsyncTask<Integer, Void, Notebook>
     {
         Log.d("RetrieveNotebook", "Retrieving...");
 
-        Notebook retrievedNotebook = mNoteDao.getNotebookById(id[0]);
+        //Notebook retrievedNotebook = mNoteDao.getNotebookById(id[0]);
 
-        Log.d("NotesOnCreate", "Retrieved notebook name : " + retrievedNotebook.getName());
-
-        return retrievedNotebook;
+//        Log.d("NotesOnCreate", "Retrieved notebook name : " + retrievedNotebook.getName());
+//
+        //return retrievedNotebook;
+        return new Notebook();
     }
 }

@@ -3,7 +3,6 @@ package com.example.root.notes.functionality;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,8 +12,7 @@ import android.widget.TextView;
 
 import com.example.root.notes.model.Note;
 import com.example.root.notes.R;
-import com.example.root.notes.util.Utilities;
-import com.example.root.notes.views.NotesView;
+import com.example.root.notes.views.NotesDisplay;
 
 import java.util.List;
 
@@ -127,7 +125,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
     @Override
     public void onBindViewHolder(NotesAdapter.ViewHolder holder, int position)
     {
-        mSelectedItems = NotesView.retrieveSelectedItems();
+        mSelectedItems = NotesDisplay.retrieveSelectedItems();
 
         Note note = mDataSet.get(position);
 
@@ -214,7 +212,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
             holder.getDateView().setTextColor(Color.GREEN);
         }
 
-        if(NotesView.selectModeStatus())
+        if(NotesDisplay.selectModeStatus())
         {
             if(mSelectedItems.contains(position))
             {
@@ -227,7 +225,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
                 holder.getPhotoLayoutView().setBackgroundColor(Color.WHITE);
             }
         }
-        else if(!NotesView.selectModeStatus() && mSelectedItems.size() >= 0)
+        else if(!NotesDisplay.selectModeStatus() && mSelectedItems.size() >= 0)
         {
             holder.getTitleContentLayoutView().setBackgroundColor(Color.WHITE);
             holder.getPhotoLayoutView().setBackgroundColor(Color.WHITE);
@@ -259,10 +257,29 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
     public void addItems(List<Note> newDataset)
     {
         mDataSet = newDataset;
+        notifyDataSetChanged();
+    }
+
+    public void addItem(Note note)
+    {
+        mDataSet.add(note);
+        notifyDataSetChanged();
+    }
+
+    public int getItemPosition(Note note)
+    {
+        return mDataSet.indexOf(note);
+    }
+
+    public void deleteItem(Note note)
+    {
+        mDataSet.remove(note);
+        notifyDataSetChanged();
     }
 
     public void clear()
     {
         mDataSet.clear();
+        notifyDataSetChanged();
     }
 }

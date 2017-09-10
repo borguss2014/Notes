@@ -24,7 +24,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.root.notes.BaseView;
 import com.example.root.notes.NotebookDisplayRepository;
 import com.example.root.notes.NotebooksDisplayPresenter;
 import com.example.root.notes.NotebooksDisplayView;
@@ -52,9 +51,8 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
     private NotebooksAdapter                mNotebooksViewAdapter;
     private Notebook                        mLastInsertedNotebook;
-    private AlertDialog.Builder             mAlertDialog;
 
-    private PresenterViewModel mPresenterViewModel;
+    private PresenterViewModel<NotebooksDisplayPresenter> mPresenterViewModel;
     private NotebooksDisplayPresenter mPresenter;
 
     @BindView(R.id.floating_action_add_notebook)
@@ -62,9 +60,6 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
     @BindView(R.id.notebooks_list_view)
     RecyclerView mNotebooksView;
-
-    //    private String                          notebooksDirPath;
-    //    private LoadNotebooksTask               loadAllNotebooks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -75,7 +70,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
         setTitle("Notebooks");
 
-        Log.d("DEBUG", "NOTEBOOKS_ON_CREATE");
+        getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
         mPresenterViewModel = ViewModelProviders.of(this).get(PresenterViewModel.class);
 
@@ -93,72 +88,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
             mPresenter.attachLifecycle(getLifecycle());
         }
 
-        mNotebooksViewAdapter = new NotebooksAdapter(getApplicationContext(), new ArrayList<Notebook>());
-
-        mNotebooksView.setAdapter(mNotebooksViewAdapter);
-        mNotebooksView.setLayoutManager(new LinearLayoutManager(this));
-
-        mAlertDialog = new AlertDialog.Builder(this);
-
-//        NotebookViewModel.Factory notebookViewModelFactory = new NotebookViewModel.Factory(
-//                getApplication(), notebooksLst
-//        );
-
-        //notebooksDirPath = getApplicationContext().getFilesDir().toString();
-
-        getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
-
-
-//        loadAllNotebooks = new LoadNotebooksTask(notebooksDirPath);
-//        loadAllNotebooks.setNotebooksList(mNotebooks);
-//        loadAllNotebooks.setNotebooksAdapter(mNotebooksViewAdapter);
-
-        mNotebooksView.addOnScrollListener(new RecyclerView.OnScrollListener()
-        {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0 || dy < 0 && floatingActionButton.isShown()) {
-                    floatingActionButton.hide();
-                }
-
-                super.onScrolled(recyclerView, dx, dy);
-            }
-
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState)
-            {
-                if (newState == RecyclerView.SCROLL_STATE_IDLE)
-                {
-                    floatingActionButton.show();
-                }
-
-                super.onScrollStateChanged(recyclerView, newState);
-            }
-        });
-
-        mNotebooksViewAdapter.setClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                int itemPosition = mNotebooksView.indexOfChild(view);
-
-                Notebook notebook = mNotebooksViewAdapter.getItemAtPosition(itemPosition);
-
-                //setTempNotes(notebook.getNotes());
-
-                openNotebook(notebook);
-            }
-        });
-
-        mNotebooksViewAdapter.setLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View view)
-            {
-                return false;
-            }
-        });
+        setupView();
 
 //        mNotebooksView.setOnScrollListener(new EndlessScrollListener()
 //        {
@@ -228,7 +158,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
         if(view.getId() == R.id.floating_action_add_notebook)
         {
-            createNotebook();
+            createNotebookDialog();
         }
     }
 
@@ -301,7 +231,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
         switch(item.getItemId())
         {
             case R.id.action_add_notebook:
-                createNotebook();
+                createNotebookDialog();
                 return true;
             case R.id.action_purge_notebooks:
                 //Utilities.deleteAllFolders(context.get());
@@ -323,15 +253,17 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void createNotebook()
+    private void createNotebookDialog()
     {
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
 
-        mAlertDialog.setView(input);
-        mAlertDialog.setTitle("Set notebook name");
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
 
-        mAlertDialog.setPositiveButton("Add", new DialogInterface.OnClickListener()
+        alertDialogBuilder.setView(input);
+        alertDialogBuilder.setTitle("Set notebook name");
+
+        alertDialogBuilder.setPositiveButton("Add", new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which)
@@ -343,20 +275,12 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
                     dialogNotebookName = "Untitled";
                 }
 
-//                String notebookPath = notebooksDirPath.concat(File.separator.concat(newNotebook.getName()));
-//
-//                AddNotebookFileTask addNotebook = new AddNotebookFileTask(newNotebook, notebookPath);
-//                addNotebook.setNotebooksList(mNotebooks.getValue());
-//                addNotebook.setNotebooksAdapter(mNotebooksViewAdapter);
-//
-//                addNotebook.execute();
-
                 mLastInsertedNotebook = new Notebook(dialogNotebookName);
 
                 mPresenter.addNotebook(mLastInsertedNotebook);
             }
         });
-        mAlertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+        alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which)
@@ -365,25 +289,74 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
             }
         });
 
-        mAlertDialog.show();
+        alertDialogBuilder.show();
     }
 
     private void openNotebook(Notebook notebook)
     {
-        Intent notesView = new Intent(getApplicationContext(), NotesView.class);
+        Intent notesView = new Intent(getApplicationContext(), NotesDisplay.class);
         notesView.putExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, notebook.getId());
 
         startActivityForResult(notesView, Attributes.ActivityMessageType.NOTES_LIST_ACTIVITY);
     }
 
-
-    public NotebooksAdapter getNotebooksViewAdapter()
+    @Override
+    public void setupView()
     {
-        return mNotebooksViewAdapter;
+        mNotebooksViewAdapter = new NotebooksAdapter(getApplicationContext(), new ArrayList<Notebook>());
+
+        mNotebooksView.setAdapter(mNotebooksViewAdapter);
+        mNotebooksView.setLayoutManager(new LinearLayoutManager(this));
+
+        mNotebooksView.addOnScrollListener(new RecyclerView.OnScrollListener()
+        {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0 || dy < 0 && floatingActionButton.isShown()) {
+                    floatingActionButton.hide();
+                }
+
+                super.onScrolled(recyclerView, dx, dy);
+            }
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState)
+            {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE)
+                {
+                    floatingActionButton.show();
+                }
+
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+        });
+
+        mNotebooksViewAdapter.setClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                int itemPosition = mNotebooksView.indexOfChild(view);
+
+                Notebook notebook = mNotebooksViewAdapter.getItemAtPosition(itemPosition);
+
+                openNotebook(notebook);
+            }
+        });
+
+        mNotebooksViewAdapter.setLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View view)
+            {
+                return false;
+            }
+        });
     }
 
     @Override
-    public LifecycleRegistry getLifecycle() {
+    public LifecycleRegistry getLifecycle()
+    {
         return mRegistry;
     }
 
@@ -406,13 +379,15 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
         mNotebooksViewAdapter.addItem(notebook);
 
+        mLastInsertedNotebook = notebook;
+
         Snackbar.make(mNotebooksView, "Notebook added", Snackbar.LENGTH_LONG)
                 .setAction("Open notebook", new View.OnClickListener()
                 {
                     @Override
                     public void onClick(View view)
                     {
-                        openNotebook(mLastInsertedNotebook);
+                        openNotebook(notebook);
                     }
                 }).show();
     }
@@ -453,6 +428,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
         dbCreator.createDb(getApplication());
     }
 
+    @Override
     public void initializePresenter(AppDatabase appDatabase)
     {
         NotebookRepository repository = new NotebookDisplayRepository(appDatabase);
@@ -460,20 +436,10 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
         NotebooksDisplayPresenter presenter = new NotebooksDisplayPresenter(this, repository, AndroidSchedulers.mainThread());
 
         mPresenterViewModel.setPresenter(presenter);
-        mPresenter = mPresenterViewModel.getPresenter();
+        mPresenter = presenter;
 
-        Log.d("DatabaseCreator", "Presenter initialized ... loading notebooks");
+        Log.d("PresenterInit", "Presenter initialized ... loading notebooks");
 
         mPresenter.loadNotebooks();
     }
-
-    //    public static void setTempNotes(ArrayList<Note> tempNotes)
-//    {
-//        mNotesTemp = tempNotes;
-//    }
-//
-//    public static ArrayList<Note> getTempNotes()
-//    {
-//        return mNotesTemp;
-//    }
 }

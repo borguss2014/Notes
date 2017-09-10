@@ -68,7 +68,7 @@ public class NotebooksDisplayPresenterTest
     }
 
     @Test
-    public void shouldPassLoadNotebooksToView()
+    public void shouldLoadNotebooksToView()
     {
         Mockito.when(repository.getNotebooks()).thenReturn(Single.just(MANY_NOTEBOOKS));
 
@@ -88,7 +88,7 @@ public class NotebooksDisplayPresenterTest
     }
 
     @Test
-    public void shouldPassAddNotebookToRepository()
+    public void shouldAddNotebookToRepository()
     {
         Mockito.when(repository.addNotebook(testNotebook)).thenReturn(Single.just((long)1));
 

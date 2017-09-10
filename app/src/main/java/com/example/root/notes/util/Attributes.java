@@ -1,7 +1,5 @@
 package com.example.root.notes.util;
 
-import android.util.SparseArray;
-
 /**
  * TODO: Add a class header comment!
  */

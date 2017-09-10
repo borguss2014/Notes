@@ -28,7 +28,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-public class NoteEditorView extends AppCompatActivity
+public class NoteEditorDisplay extends AppCompatActivity
 {
     private EditText                mEditTextTitle;
     private DottedLineEditText      mDLEditTextContent;
@@ -300,5 +300,13 @@ public class NoteEditorView extends AppCompatActivity
         setResult(resultCode, resultIntent);
 
         finish();
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        super.onBackPressed();
+
+        Log.d("BACK_PRESSED", "BACKPRESSED !!!!!!!");
     }
 }

@@ -11,7 +11,7 @@ import android.widget.ListView;
 public abstract class EndlessScrollListener implements ListView.OnScrollListener
 {
     private final int buffer_threshold;
-    private int front_invisible_items;
+    private int nr_front_invisible_items;
     private int invisible_remaining_items;
 
     private boolean loading;
@@ -38,8 +38,9 @@ public abstract class EndlessScrollListener implements ListView.OnScrollListener
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
     {
-        front_invisible_items = firstVisibleItem;
-        invisible_remaining_items = totalItemCount - (visibleItemCount + front_invisible_items);
+        nr_front_invisible_items = firstVisibleItem; // number of front invisible items = index of the first visible item
+
+        invisible_remaining_items = totalItemCount - (visibleItemCount + nr_front_invisible_items);
 
         if(!loading && (invisible_remaining_items < buffer_threshold) && totalItemCount != 0) {
 

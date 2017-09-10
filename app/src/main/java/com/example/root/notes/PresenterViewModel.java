@@ -1,16 +1,17 @@
 package com.example.root.notes;
 
 import android.arch.lifecycle.ViewModel;
+import android.util.Log;
 
 /**
  * TODO: Add a class header comment!
  */
 
-public class PresenterViewModel extends ViewModel
+public class PresenterViewModel<T> extends ViewModel
 {
-    private NotebooksDisplayPresenter mPresenter;
+    private T mPresenter;
 
-    public void setPresenter(NotebooksDisplayPresenter presenter)
+    public void setPresenter(T presenter)
     {
         if(this.mPresenter == null)
         {
@@ -18,7 +19,7 @@ public class PresenterViewModel extends ViewModel
         }
     }
 
-    public NotebooksDisplayPresenter getPresenter()
+    public T getPresenter()
     {
         return mPresenter;
     }

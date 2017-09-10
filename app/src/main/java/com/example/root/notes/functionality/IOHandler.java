@@ -6,7 +6,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.root.notes.util.Attributes;
-import com.example.root.notes.views.NotesView;
+import com.example.root.notes.views.NotesDisplay;
 
 import java.lang.ref.WeakReference;
 
@@ -16,9 +16,9 @@ import java.lang.ref.WeakReference;
 
 public class IOHandler extends Handler
 {
-    private final WeakReference<NotesView> mActivity;
+    private final WeakReference<NotesDisplay> mActivity;
 
-    public IOHandler(NotesView activity)
+    public IOHandler(NotesDisplay activity)
     {
         mActivity = new WeakReference<>(activity);
     }
@@ -28,7 +28,7 @@ public class IOHandler extends Handler
     {
         Log.d("HANDLER", "IN_HANDLER");
 
-        NotesView activity = mActivity.get();
+        NotesDisplay activity = mActivity.get();
 
         if(activity == null) return;
 

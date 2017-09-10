@@ -18,20 +18,16 @@ import java.util.List;
 
 public class NoteViewModel extends AndroidViewModel
 {
-    private AppDatabase mAppDatabase;
-    private LiveData<List<Note>> notesList;
+    private List<Note> mNotesList;
 
-    public NoteViewModel(Application application, int notebookId)
+    public NoteViewModel(Application application, List<Note> notesList)
     {
         super(application);
-
-        mAppDatabase = AppDatabase.getDatabase(this.getApplication());
-        notesList = mAppDatabase.noteModel().getNotesForNotebook(notebookId);
     }
 
-    public LiveData<List<Note>> getNotesList()
+    public List<Note> getNotesList()
     {
-        return notesList;
+        return mNotesList;
     }
 
     public static class Factory extends ViewModelProvider.NewInstanceFactory
@@ -40,19 +36,19 @@ public class NoteViewModel extends AndroidViewModel
         @NonNull
         private final Application mApplication;
 
-        private int mNotebookId;
+        private List<Note> mNotesList;
 
-        public Factory(@NonNull Application application, int notebookId)
+        public Factory(@NonNull Application application, List<Note> notesList)
         {
             mApplication = application;
-            mNotebookId = notebookId;
+            mNotesList = notesList;
         }
 
         @Override
         public <T extends ViewModel> T create(Class<T> modelClass)
         {
             //noinspection unchecked
-            return (T) new NoteViewModel(mApplication, mNotebookId);
+            return (T) new NoteViewModel(mApplication, mNotesList);
         }
     }
 }

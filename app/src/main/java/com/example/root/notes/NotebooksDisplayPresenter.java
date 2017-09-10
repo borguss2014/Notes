@@ -2,6 +2,11 @@ package com.example.root.notes;
 
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
+import android.widget.EditText;
 
 import com.example.root.notes.model.Notebook;
 
@@ -58,7 +63,8 @@ public class NotebooksDisplayPresenter implements LifecycleObserver, NotebookPre
                     {
                         e.printStackTrace();
                     }
-                }));
+                })
+        );
     }
 
     @Override
