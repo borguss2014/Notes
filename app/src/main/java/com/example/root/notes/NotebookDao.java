@@ -23,6 +23,9 @@ public interface NotebookDao
     @Query("SELECT * FROM " + Notebook.TABLE_NAME)
     List<Notebook> getAllNotebooks();
 
+    @Query("SELECT * FROM " + Notebook.TABLE_NAME + " WHERE " + Notebook.NOTEBOOK_NAME + " = :notebookName")
+    Notebook getNotebookByName(String notebookName);
+
     @Query("DELETE FROM " + Notebook.TABLE_NAME)
     void deleteAllNotebooks();
 

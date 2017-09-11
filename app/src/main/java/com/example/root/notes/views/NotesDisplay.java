@@ -6,11 +6,15 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,38 +23,35 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.root.notes.NoteDisplayRepository;
 import com.example.root.notes.NoteRepository;
+import com.example.root.notes.NotebookDao;
+import com.example.root.notes.NotebookDisplayRepository;
+import com.example.root.notes.NotebookRepository;
+import com.example.root.notes.NotebooksDisplayPresenter;
+import com.example.root.notes.NotebooksDisplayView;
 import com.example.root.notes.NotesDisplayPresenter;
 import com.example.root.notes.NotesDisplayView;
 import com.example.root.notes.PresenterViewModel;
-import com.example.root.notes.async_tasks.note.AddNoteDBTask;
-import com.example.root.notes.async_tasks.note.DeleteNoteDBTask;
-import com.example.root.notes.async_tasks.note.PurgeNotesDBTask;
-import com.example.root.notes.async_tasks.note.RetrieveNotebookDBTask;
-import com.example.root.notes.async_tasks.note.UpdateNoteDBTask;
 import com.example.root.notes.database.AppDatabase;
 import com.example.root.notes.database.DatabaseCreator;
 import com.example.root.notes.database.NoteViewModel;
-import com.example.root.notes.database.QueryResultLiveData;
+import com.example.root.notes.model.Notebook;
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.util.Comparison;
-import com.example.root.notes.functionality.IOHandler;
 import com.example.root.notes.model.Note;
-import com.example.root.notes.model.Notebook;
 import com.example.root.notes.functionality.NotesAdapter;
 import com.example.root.notes.R;
-import com.example.root.notes.util.Utilities;
 
-import java.io.FileNotFoundException;
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -68,22 +69,27 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     private Note                        mReceivedNoteFromEditor;
     private NoteViewModel               notesViewModel;
     private NotesAdapter                mNotesViewAdapter;
-    private int                         mReceivedNotebookID;
+    private int mDefaultNotebookID;
 
-    private QueryResultLiveData         mNoteDeleteQueryResultViewModel;
-
-    private Note mLastInsertedNote;
-
-    private final IOHandler mHandler = new IOHandler(this);
+    private ActionBarDrawerToggle       mDrawerToggle;
+    private ArrayAdapter<String>        mDrawerListAdapter;
 
     private PresenterViewModel<NotesDisplayPresenter> mPresenterViewModel;
     private NotesDisplayPresenter mPresenter;
+
+    private SharedPreferences appPreferences;
 
     @BindView(R.id.floating_action_add_note)
     FloatingActionButton floatingActionButton;
 
     @BindView(R.id.notes_list_view)
     RecyclerView mNotesView;
+
+    @BindView(R.id.notes_nav_drawer)
+    DrawerLayout mDrawerLayout;
+
+    @BindView(R.id.notes_nav_list)
+    ListView mDrawerList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -98,20 +104,26 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
-        mReceivedNotebookID = getIntent()
-                .getIntExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, -1);
+        appPreferences = this.getSharedPreferences("com.example.root.notes", Context.MODE_PRIVATE);
 
-        Log.d("NotesOnCreate", "Received notebook id: " + Integer.toString(mReceivedNotebookID));
+        Log.d("NotesOnCreate", "Received notebook id: " + Integer.toString(mDefaultNotebookID));
+
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        addDrawerItems();
+        setupDrawer();
+
+        setupView();
 
         mPresenterViewModel = ViewModelProviders.of(this).get(PresenterViewModel.class);
 
         if(mPresenterViewModel.getPresenter() == null)
         {
-            Log.d("NotesDisplay", "Presenter null ... preparing for presenter init");
+            Log.d("NotesDisplay", "Presenter null ... preparing for DB init");
 
-            AppDatabase appDatabase = DatabaseCreator.getInstance().getDatabase();
-
-            initializePresenter(appDatabase);
+            initializeDatabase();
         }
         else
         {
@@ -122,53 +134,10 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
         }
 
 //        NoteViewModel.Factory noteViewModelFactory = new NoteViewModel.Factory(
-//                getApplication(), mReceivedNotebookID
+//                getApplication(), mDefaultNotebookID
 //        );
 //
 //        notesViewModel = ViewModelProviders.of(this, noteViewModelFactory).get(NoteViewModel.class);
-
-        mNoteDeleteQueryResultViewModel = new QueryResultLiveData();
-
-        mNoteDeleteQueryResultViewModel.observe(NotesDisplay.this, new Observer<Object>() {
-            @Override
-            public void onChanged(@Nullable Object queryResult)
-            {
-                Log.d("QueryResultObserver", "Delete Query Result Observer");
-
-                if(queryResult != null && !queryResult.equals(-1))
-                {
-                    Snackbar.make(mNotesView, "Note deleted", Snackbar.LENGTH_LONG)
-                            .setAction("Revert", new View.OnClickListener()
-                            {
-                                @Override
-                                public void onClick(View view)
-                                {
-//                                    new AddNoteDBTask(mAppDatabase.noteModel(), mNoteAddQueryResultViewModel)
-//                                            .execute(mReceivedNoteFromEditor);
-                                }
-                            }).show();
-                }
-                else if(queryResult != null && queryResult.equals(-1))
-                {
-                    Snackbar.make(mNotesView, "Error : Note deletion rejected", Snackbar.LENGTH_LONG)
-                            .setAction("Retry", new View.OnClickListener()
-                            {
-                                @Override
-                                public void onClick(View view)
-                                {
-//                                    new DeleteNoteDBTask(mAppDatabase.noteModel(), mNoteDeleteQueryResultViewModel)
-//                                            .execute(mReceivedNoteFromEditor);
-                                }
-                            }).show();
-                }
-                else if(queryResult == null)
-                {
-                    Snackbar.make(mNotesView, "Error : An issue has occured", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-            }
-        });
-
 
         mSelectedItems = new ArrayList<>();
         mSelectMode = false;
@@ -178,11 +147,6 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
         Comparison.initComparators();
         Comparison.setCurrentComparator(Comparison.getCompareByTitle());
         //Comparison.setOrderDescending();
-
-       setupView();
-
-        mPresenter.getNotesForNotebook(mReceivedNotebookID);
-
     }
 
     @OnClick(R.id.floating_action_add_note)
@@ -242,21 +206,29 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     }
 
     @Override
-    protected void onRestart() {
+    protected void onRestart()
+    {
         super.onRestart();
 
         Log.d("DEBUG", "ON_RESTART");
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.notes_menu, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        if (mDrawerToggle.onOptionsItemSelected(item))
+        {
+            return true;
+        }
+
         switch(item.getItemId())
         {
             case R.id.action_main_add_note:
@@ -296,6 +268,7 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                 invalidateOptionsMenu();
                 mNotesViewAdapter.notifyDataSetChanged();
                 return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -331,9 +304,9 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
             {
                 case Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT:
                 {
-                    Log.d("MAIN_ACTIVITY_RESULT", "New note result");
+                    Log.d("NOTES_ACTIVITY_RESULT", "New note result");
 
-                    mReceivedNoteFromEditor.setNotebookId(mReceivedNotebookID);
+                    mReceivedNoteFromEditor.setNotebookId(mDefaultNotebookID);
 
                     mPresenter.addNote(mReceivedNoteFromEditor);
 
@@ -341,9 +314,9 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                 }
                 case Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT:
                 {
-                    Log.d("MAIN_ACTIVITY_RESULT", "Overwrite note result");
+                    Log.d("NOTES_ACTIVITY_RESULT", "Overwrite note result");
 
-                    mReceivedNoteFromEditor.setNotebookId(mReceivedNotebookID);
+                    mReceivedNoteFromEditor.setNotebookId(mDefaultNotebookID);
 
                     mPresenter.updateNote(mReceivedNoteFromEditor);
 
@@ -351,13 +324,33 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                 }
                 case Attributes.ActivityResultMessageType.DELETE_NOTE_ACTIVITY_RESULT:
                 {
-                    Log.d("MAIN_ACTIVITY_RESULT", "Delete note result");
+                    Log.d("NOTES_ACTIVITY_RESULT", "Delete note result");
 
                     Note toBeDeletedNote = mNotesViewAdapter.getItemAtPosition(mClickedNotePosition);
 
                     mPresenter.deleteNote(toBeDeletedNote);
 
                     mReceivedNoteFromEditor = toBeDeletedNote;
+
+                    break;
+                }
+            }
+        }
+        else if(requestCode == Attributes.ActivityMessageType.NOTEBOOKS_LIST_ACTIVITY && data != null)
+        {
+            mDefaultNotebookID = (int) data.getIntExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, -1);
+
+            Log.d("DEFAULT_NOTEBOOK_ID", "DEFAULT ID : " + mDefaultNotebookID);
+
+            switch(resultCode)
+            {
+                case Attributes.ActivityResultMessageType.RETURN_NOTEBOOK_ACTIVITY_RESULT:
+                {
+                    Log.d("NOTES_ACTIVITY_RESULT", "Notebook returned result");
+
+                    mNotesViewAdapter.clear();
+
+                    mPresenter.getNotesForNotebook(mDefaultNotebookID);
 
                     break;
                 }
@@ -382,16 +375,6 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
         return mSelectMode;
     }
 
-    public IOHandler getHandler()
-    {
-        return mHandler;
-    }
-
-    public int getCurrentlyClickedNote()
-    {
-        return mClickedNotePosition;
-    }
-
     public void setCurrentlyClickedNote(int pos)
     {
         mClickedNotePosition = pos;
@@ -405,16 +388,6 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     public void setReceivedNote(Note note)
     {
         mReceivedNoteFromEditor = note;
-    }
-
-    public Note getReceivedNote()
-    {
-        return mReceivedNoteFromEditor;
-    }
-
-    public RecyclerView getNotesView()
-    {
-        return mNotesView;
     }
 
     public void openNote(Note note)
@@ -497,6 +470,31 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
         });
     }
 
+    public void initializeDatabase()
+    {
+        DatabaseCreator dbCreator = DatabaseCreator.getInstance();
+
+        dbCreator.isDatabaseCreated().observe(NotesDisplay.this, new Observer<Boolean>()
+        {
+            @Override
+            public void onChanged(@Nullable Boolean dbCreated)
+            {
+                if (dbCreated != null && dbCreated)
+                {
+                    AppDatabase appDatabase = dbCreator.getDatabase();
+
+//                    appDatabase.noteModel().nukeNotebooks();
+//                    appDatabase.noteModel().nukeNotes();
+
+                    Log.d("DatabaseCreator", "Database retrieved ... initializing presenter");
+                    initializePresenter(appDatabase);
+                }
+            }
+        });
+
+        dbCreator.createDb(getApplication());
+    }
+
     @Override
     public void initializePresenter(AppDatabase appDatabase)
     {
@@ -506,6 +504,23 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
         mPresenterViewModel.setPresenter(presenter);
         mPresenter = presenter;
+
+        Log.d("PresenterInit", "Presenter initialized ... loading notes");
+
+        mDefaultNotebookID = appPreferences.getInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, -1);
+
+        Log.d("PresenterInit", "Default notebook id : " + mDefaultNotebookID);
+
+        if(mDefaultNotebookID == -1)
+        {
+            Log.d("PresenterInit", "No default notebook found ... creating");
+
+            Notebook defaultNotebook = new Notebook("Untitled");
+
+            mPresenter.addDefaultNotebook(defaultNotebook);
+        }
+
+        mPresenter.getAllNotes();
     }
 
     @Override
@@ -525,8 +540,6 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     public void displayNoteAdded(Note note)
     {
         mNotesViewAdapter.addItem(note);
-
-        mLastInsertedNote = note;
 
         Snackbar.make(mNotesView, "Note added", Snackbar.LENGTH_LONG)
                 .setAction("Open note", new View.OnClickListener()
@@ -616,5 +629,87 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                         mPresenter.deleteNote(note);
                     }
                 }).show();
+    }
+
+    private void addDrawerItems()
+    {
+        String[] itemsArray = { "All notes", "Notebooks" };
+        mDrawerListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, itemsArray);
+        mDrawerList.setAdapter(mDrawerListAdapter);
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id)
+            {
+                String item = (String) adapterView.getItemAtPosition(position);
+
+                if(item.equals(Attributes.NavigationDrawerList.NAV_ITEM_ALL_NOTES))
+                {
+                    mDefaultNotebookID = appPreferences.getInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, -1);
+
+                    mNotesViewAdapter.clear();
+
+                    mPresenter.getAllNotes();
+                }
+                else if(item.equals(Attributes.NavigationDrawerList.NAV_ITEM_NOTEBOOKS))
+                {
+                    Intent notebooksActivity = new Intent(getApplicationContext(), NotebooksDisplay.class);
+                    startActivityForResult(notebooksActivity , Attributes.ActivityMessageType.NOTEBOOKS_LIST_ACTIVITY);
+                }
+
+                mDrawerLayout.closeDrawers();
+            }
+        });
+    }
+
+    private void setupDrawer()
+    {
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.nav_drawer_open, R.string.nav_drawer_close)
+        {
+            @Override
+            public void onDrawerOpened(View drawerView)
+            {
+                super.onDrawerOpened(drawerView);
+
+                getSupportActionBar().setTitle("Navigation!");
+                invalidateOptionsMenu();
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView)
+            {
+                super.onDrawerClosed(drawerView);
+
+                getSupportActionBar().setTitle("Notes");
+                invalidateOptionsMenu();
+            }
+        };
+
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+
+    }
+
+    public void saveDefaultNotebook(Notebook notebook)
+    {
+        int defaultNotebookID = notebook.getId();
+
+        mDefaultNotebookID = defaultNotebookID;
+
+        appPreferences.edit().putInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, defaultNotebookID)
+                .apply();
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState)
+    {
+        super.onPostCreate(savedInstanceState);
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
     }
 }

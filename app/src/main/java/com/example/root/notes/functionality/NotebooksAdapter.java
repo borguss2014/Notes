@@ -132,6 +132,19 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
         mLongClickListener = callback;
     }
 
+    public boolean contains(String notebookName)
+    {
+        for(Notebook notebook : mDataSet)
+        {
+            if(notebook.getName().equals(notebookName))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void addItems(List<Notebook> newDataSet)
     {
         mDataSet.addAll(newDataSet);

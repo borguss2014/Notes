@@ -1,6 +1,7 @@
 package com.example.root.notes;
 
 import com.example.root.notes.model.Note;
+import com.example.root.notes.model.Notebook;
 
 import java.util.List;
 
@@ -21,4 +22,6 @@ public interface NotesDisplayView extends BaseView
 
     void displayNoteDeleted(Note note);
     void displayNoteNotDeleted(Note note);
+
+    void saveDefaultNotebook(Notebook notebook);
 }

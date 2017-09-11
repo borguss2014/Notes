@@ -84,7 +84,7 @@ public class NotebooksDisplayPresenter implements LifecycleObserver, NotebookPre
                             return;
                         }
 
-                        view.displayNotebookAdded(notebook);
+                        getNotebookByName(notebook.getName());
                     }
 
                     @Override
@@ -93,6 +93,29 @@ public class NotebooksDisplayPresenter implements LifecycleObserver, NotebookPre
                         e.printStackTrace();
                     }
                 })
+        );
+    }
+
+    @Override
+    public void getNotebookByName(String name)
+    {
+        compositeDisposable.add(repository.retrieveNotebookByName(name)
+                .subscribeOn(Schedulers.io())
+                .observeOn(mainScheduler)
+                .subscribeWith(new DisposableSingleObserver<Notebook>()
+               {
+                   @Override
+                   public void onSuccess(Notebook notebook)
+                   {
+                       view.displayNotebookAdded(notebook);
+                   }
+
+                   @Override
+                   public void onError(Throwable e)
+                   {
+
+                   }
+               })
         );
     }
 

@@ -3,6 +3,7 @@ package com.example.root.notes;
 import android.arch.lifecycle.Lifecycle;
 
 import com.example.root.notes.model.Note;
+import com.example.root.notes.model.Notebook;
 
 import java.util.List;
 
@@ -213,6 +214,52 @@ public class NotesDisplayPresenter implements NotePresenter
                         {
                             view.displayNoteDeleted(note);
                         }
+                    }
+
+                    @Override
+                    public void onError(Throwable e)
+                    {
+                        e.printStackTrace();
+                    }
+                })
+        );
+    }
+
+    @Override
+    public void addDefaultNotebook(Notebook notebook)
+    {
+        compositeDisposable.add(repository.insertDefaultNotebook(notebook)
+                .subscribeOn(Schedulers.io())
+                .observeOn(mainScheduler)
+                .subscribeWith(new DisposableSingleObserver<Long>()
+                {
+                    @Override
+                    public void onSuccess(Long aLong)
+                    {
+                        getNotebookByName(notebook.getName());
+                    }
+
+                    @Override
+                    public void onError(Throwable e)
+                    {
+                        e.printStackTrace();
+                    }
+                })
+        );
+    }
+
+    @Override
+    public void getNotebookByName(String name)
+    {
+        compositeDisposable.add(repository.retrieveNotebookByName(name)
+                .subscribeOn(Schedulers.io())
+                .observeOn(mainScheduler)
+                .subscribeWith(new DisposableSingleObserver<Notebook>()
+                {
+                    @Override
+                    public void onSuccess(Notebook notebook)
+                    {
+                        view.saveDefaultNotebook(notebook);
                     }
 
                     @Override

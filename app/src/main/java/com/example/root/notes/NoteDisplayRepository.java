@@ -2,6 +2,7 @@ package com.example.root.notes;
 
 import com.example.root.notes.database.AppDatabase;
 import com.example.root.notes.model.Note;
+import com.example.root.notes.model.Notebook;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -97,6 +98,32 @@ public class NoteDisplayRepository implements NoteRepository
             public Integer call() throws Exception
             {
                 return mAppDatabase.noteModel().deleteNote(note);
+            }
+        });
+    }
+
+    @Override
+    public Single<Long> insertDefaultNotebook(Notebook notebook)
+    {
+        return Single.fromCallable(new Callable<Long>()
+        {
+            @Override
+            public Long call() throws Exception
+            {
+                return mAppDatabase.notebookModel().addNotebook(notebook);
+            }
+        });
+    }
+
+    @Override
+    public Single<Notebook> retrieveNotebookByName(String name)
+    {
+        return Single.fromCallable(new Callable<Notebook>()
+        {
+            @Override
+            public Notebook call() throws Exception
+            {
+                return mAppDatabase.notebookModel().getNotebookByName(name);
             }
         });
     }

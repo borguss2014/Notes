@@ -48,4 +48,17 @@ public class NotebookDisplayRepository implements NotebookRepository
             }
         });
     }
+
+    @Override
+    public Single<Notebook> retrieveNotebookByName(String name)
+    {
+        return Single.fromCallable(new Callable<Notebook>()
+        {
+            @Override
+            public Notebook call() throws Exception
+            {
+                return mAppDatabase.notebookModel().getNotebookByName(name);
+            }
+        });
+    }
 }

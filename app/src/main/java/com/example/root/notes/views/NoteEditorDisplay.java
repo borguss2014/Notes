@@ -1,9 +1,14 @@
 package com.example.root.notes.views;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -13,7 +18,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.functionality.DottedLineEditText;
@@ -28,6 +35,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class NoteEditorDisplay extends AppCompatActivity
 {
     private EditText                mEditTextTitle;
@@ -39,24 +49,43 @@ public class NoteEditorDisplay extends AppCompatActivity
 
     private Note                    mReceivedNote;
 
-    private FloatingActionButton    floatingActionButton;
+    @BindView(R.id.floating_action_edit_note)
+    FloatingActionButton    floatingActionButton;
+
+    InputMethodManager inputManager;
+    android.support.v7.app.ActionBar actionBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_editor);
+        ButterKnife.bind(this);
 
-        floatingActionButton = findViewById(R.id.floating_action_save_note);
+        inputManager = (InputMethodManager)   getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        actionBar=getSupportActionBar();
+
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeButtonEnabled(true);
+
         floatingActionButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
-                String note_title = mEditTextTitle.getText().toString().trim();
-                String note_content = mDLEditTextContent.getText().toString().trim();
+                mEdit = true;
 
-                saveNote(note_title, note_content);
+                enableEditText(mEditTextTitle, mEdit);
+                enableEditText(mDLEditTextContent, mEdit);
+
+                floatingActionButton.hide();
+
+                inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+
+                mDLEditTextContent.requestFocus();
+
+                actionBar.setHomeAsUpIndicator(R.drawable.check);
             }
         });
 
@@ -81,7 +110,6 @@ public class NoteEditorDisplay extends AppCompatActivity
 
             setTitle("Edit note");
 
-            floatingActionButton.hide();
         }
         else
         {
@@ -92,7 +120,8 @@ public class NoteEditorDisplay extends AppCompatActivity
             {
                 mReceivedNote = new Note();
             }
-//            mReceivedNote.setFileName(Utilities.generateUniqueFilename(Attributes.NOTE_FILE_EXTENSION));
+
+            floatingActionButton.hide();
 
             setTitle("New note");
         }
@@ -115,7 +144,6 @@ public class NoteEditorDisplay extends AppCompatActivity
                     if(!mEditTextTitle.getText().toString().equals(mReceivedNote.getTitle()) ||
                             !mDLEditTextContent.getText().toString().equals(mReceivedNote.getContent()))
                     {
-                        //Note altered
                         mNoteAltered = true;
                         invalidateOptionsMenu();
                     }
@@ -145,7 +173,6 @@ public class NoteEditorDisplay extends AppCompatActivity
                 if(!mEditTextTitle.getText().toString().equals(mReceivedNote.getTitle()) ||
                         !mDLEditTextContent.getText().toString().equals(mReceivedNote.getContent()))
                 {
-                    //Note altered
                     mNoteAltered = true;
                     invalidateOptionsMenu();
                 }
@@ -191,7 +218,7 @@ public class NoteEditorDisplay extends AppCompatActivity
             case R.id.action_notes_save_note:
             {
                 saveNote(note_title, note_content);
-                return true;
+                break;
             }
             case R.id.action_notes_edit_note:
             {
@@ -200,18 +227,60 @@ public class NoteEditorDisplay extends AppCompatActivity
                 enableEditText(mEditTextTitle, mEdit);
                 enableEditText(mDLEditTextContent, mEdit);
 
-                return true;
+                if(mEdit)
+                {
+
+                    inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                }
+                else
+                {
+
+                    inputManager.hideSoftInputFromWindow(mEditTextTitle.getWindowToken(), 0);
+                }
+
+                break;
             }
             case R.id.action_notes_delete_note:
             {
                 setResult(Attributes.ActivityResultMessageType.DELETE_NOTE_ACTIVITY_RESULT, new Intent());
 
                 finish();
-                return true;
+                break;
+            }
+            case android.R.id.home:
+            {
+                if(mEdit)
+                {
+                    mEdit = false;
+
+                    actionBar.setHomeAsUpIndicator(null);
+
+                    floatingActionButton.show();
+
+                    inputManager.hideSoftInputFromWindow(mDLEditTextContent.getWindowToken(), 0);
+
+
+                    enableEditText(mEditTextTitle, mEdit);
+                    enableEditText(mDLEditTextContent, mEdit);
+                }
+                else
+                {
+                    if(mNoteAltered)
+                    {
+                        saveNote(note_title, note_content);
+                    }
+                    else
+                    {
+                        finish();
+                    }
+                }
+
+                break;
             }
             default: return super.onOptionsItemSelected(item);
-        }
 
+        }
+        return true;
     }
 
     @Override
@@ -219,24 +288,15 @@ public class NoteEditorDisplay extends AppCompatActivity
 
         MenuItem item = menu.findItem(R.id.action_notes_save_note);
 
-        if(mNewNote)
+        if(!mNoteAltered)
         {
-            item.setEnabled(true);
-        }
-        else
-        {
-            if(mNoteAltered)
-            {
-                //Allow user to save the modified note
-                item.setEnabled(true);
-                floatingActionButton.show();
+            item.setEnabled(false);
 
-            }
-            else
-            {
-                item.setEnabled(false);
-            }
+            return super.onPrepareOptionsMenu(menu);
         }
+
+        item.setEnabled(true);
+        floatingActionButton.show();
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -295,8 +355,6 @@ public class NoteEditorDisplay extends AppCompatActivity
 
         resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, mReceivedNote);
 
-        Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
-
         setResult(resultCode, resultIntent);
 
         finish();
@@ -305,8 +363,16 @@ public class NoteEditorDisplay extends AppCompatActivity
     @Override
     public void onBackPressed()
     {
-        super.onBackPressed();
+        Log.d("TEST", "BackPressed");
 
-        Log.d("BACK_PRESSED", "BACKPRESSED !!!!!!!");
+        if(mNoteAltered)
+        {
+            String note_title = mEditTextTitle.getText().toString().trim();
+            String note_content = mDLEditTextContent.getText().toString().trim();
+
+            saveNote(note_title, note_content);
+        }
+
+        super.onBackPressed();
     }
 }

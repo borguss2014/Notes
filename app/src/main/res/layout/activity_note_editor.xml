@@ -32,13 +32,13 @@ android:layout_height="match_parent">
 
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/floating_action_save_note"
+        android:id="@+id/floating_action_edit_note"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:clickable="true"
         android:focusable="true"
-        app:srcCompat="@mipmap/ic_check_black_24dp" />
+        app:srcCompat="@mipmap/ic_pencil_black_24dp" />
 
 </android.support.design.widget.CoordinatorLayout>

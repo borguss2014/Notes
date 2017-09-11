@@ -14,4 +14,6 @@ public interface NotebookRepository
 {
     Single<List<Notebook>> getNotebooks();
     Single<Long> addNotebook(Notebook notebook);
+
+    Single<Notebook> retrieveNotebookByName(String name);
 }

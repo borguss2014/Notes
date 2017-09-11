@@ -74,11 +74,15 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
         mPresenterViewModel = ViewModelProviders.of(this).get(PresenterViewModel.class);
 
+        setupView();
+
         if(mPresenterViewModel.getPresenter() == null)
         {
-            Log.d("NotebooksDisplay", "Presenter null ... preparing for DB init");
+            Log.d("NotebooksDisplay", "Presenter null ... preparing for presenter init");
 
-            initializeDatabase();
+            AppDatabase appDatabase = DatabaseCreator.getInstance().getDatabase();
+
+            initializePresenter(appDatabase);
         }
         else
         {
@@ -88,7 +92,6 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
             mPresenter.attachLifecycle(getLifecycle());
         }
 
-        setupView();
 
 //        mNotebooksView.setOnScrollListener(new EndlessScrollListener()
 //        {
@@ -149,6 +152,10 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 //        });
 
         //loadAllNotebooks.execute();
+
+        Log.d("PresenterInit", "Presenter initialized ... loading notebooks");
+
+        mPresenter.loadNotebooks();
     }
 
     @OnClick(R.id.floating_action_add_notebook)
@@ -261,7 +268,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
 
         alertDialogBuilder.setView(input);
-        alertDialogBuilder.setTitle("Set notebook name");
+        alertDialogBuilder.setTitle("Notebook name");
 
         alertDialogBuilder.setPositiveButton("Add", new DialogInterface.OnClickListener()
         {
@@ -270,9 +277,16 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
             {
                 String dialogNotebookName = input.getText().toString();
 
+                if(mNotebooksViewAdapter.contains(dialogNotebookName))
+                {
+                    Toast.makeText(getApplicationContext(), "Notebook already exists. Choose another name!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
                 if(dialogNotebookName.equals(""))
                 {
-                    dialogNotebookName = "Untitled";
+                    Toast.makeText(getApplicationContext(), "Notebook name cannot be empty!", Toast.LENGTH_LONG).show();
+                    return;
                 }
 
                 mLastInsertedNotebook = new Notebook(dialogNotebookName);
@@ -294,10 +308,15 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
     private void openNotebook(Notebook notebook)
     {
-        Intent notesView = new Intent(getApplicationContext(), NotesDisplay.class);
-        notesView.putExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, notebook.getId());
+        Intent resultIntent = new Intent();
 
-        startActivityForResult(notesView, Attributes.ActivityMessageType.NOTES_LIST_ACTIVITY);
+        resultIntent.putExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, notebook.getId());
+
+        int resultCode = Attributes.ActivityResultMessageType.RETURN_NOTEBOOK_ACTIVITY_RESULT;
+
+        setResult(resultCode, resultIntent);
+
+        finish();
     }
 
     @Override
@@ -406,28 +425,6 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
                 }).show();
     }
 
-    public void initializeDatabase()
-    {
-        DatabaseCreator dbCreator = DatabaseCreator.getInstance();
-
-        dbCreator.isDatabaseCreated().observe(NotebooksDisplay.this, new Observer<Boolean>()
-        {
-            @Override
-            public void onChanged(@Nullable Boolean dbCreated)
-            {
-                if (dbCreated != null && dbCreated)
-                {
-                    AppDatabase appDatabase = dbCreator.getDatabase();
-
-                    Log.d("DatabaseCreator", "Database retrieved ... initializing presenter");
-                    initializePresenter(appDatabase);
-                }
-            }
-        });
-
-        dbCreator.createDb(getApplication());
-    }
-
     @Override
     public void initializePresenter(AppDatabase appDatabase)
     {
@@ -437,9 +434,5 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
         mPresenterViewModel.setPresenter(presenter);
         mPresenter = presenter;
-
-        Log.d("PresenterInit", "Presenter initialized ... loading notebooks");
-
-        mPresenter.loadNotebooks();
     }
 }

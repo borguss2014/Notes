@@ -4,15 +4,17 @@
 
     <item
         android:id="@+id/action_notes_edit_note"
+        android:enabled="false"
         android:icon="@android:drawable/ic_menu_edit"
         android:title="@string/note_activity_edit"
+        android:visible="false"
         app:showAsAction="always" />
     <item
         android:id="@+id/action_notes_save_note"
-        android:enabled="true"
+        android:enabled="false"
         android:icon="@android:drawable/ic_menu_save"
         android:title="@string/note_activity_save"
-        android:visible="true"
+        android:visible="false"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_notes_delete_note"

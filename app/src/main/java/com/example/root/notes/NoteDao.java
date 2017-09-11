@@ -8,6 +8,7 @@ import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
 import com.example.root.notes.model.Note;
+import com.example.root.notes.model.Notebook;
 
 import java.util.List;
 
@@ -38,6 +39,12 @@ public interface NoteDao
 
     @Query("DELETE FROM " + Note.TABLE_NAME)
     int deleteAllNotes();
+
+    @Query("DELETE FROM " + Note.TABLE_NAME)
+    void nukeNotes();
+
+    @Query("DELETE FROM " + Notebook.TABLE_NAME)
+    void nukeNotebooks();
 
     @Insert(onConflict = REPLACE)
     Long addNote(Note note);
