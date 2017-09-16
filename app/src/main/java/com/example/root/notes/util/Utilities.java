@@ -6,6 +6,7 @@ import android.os.Build;
 import android.text.format.DateUtils;
 import android.util.Log;
 
+import com.example.root.notes.DateTime;
 import com.example.root.notes.ElapsedTime;
 import com.example.root.notes.model.Note;
 
@@ -30,7 +31,6 @@ import java.util.UUID;
 
 public class Utilities {
 
-    @TargetApi(Build.VERSION_CODES.N)
     public static boolean saveToFile(FileOutputStream fileOutputStream, Note note)
     {
         if (note == null)
@@ -235,10 +235,10 @@ public class Utilities {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
-    public static LocalDateTime getCurrentDateTime()
-    {
-        return LocalDateTime.now();
-    }
+//    @TargetApi(Build.VERSION_CODES.O)
+//    public static LocalDateTime getCurrentDateTime()
+//    {
+//        return LocalDateTime.now();
+//    }
 
 }

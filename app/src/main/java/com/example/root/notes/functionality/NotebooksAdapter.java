@@ -18,6 +18,9 @@ import com.example.root.notes.R;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * TODO: Add a class header comment!
  */
@@ -39,21 +42,22 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
 
     public static class ViewHolder extends RecyclerView.ViewHolder
     {
-        private final TextView title;
+        @BindView(R.id.adapter_notebooks_title)
+        TextView title;
 
-        private final LinearLayout titleContentLayout;
-        private final LinearLayout photoLayout;
-        private final LinearLayout parentLayout;
+        @BindView(R.id.adapter_notebooks_title_content_layout)
+        LinearLayout titleContentLayout;
+
+        @BindView(R.id.adapter_notebooks_photo_layout)
+        LinearLayout photoLayout;
+
+        @BindView(R.id.adapter_notebooks_parent_layout)
+        LinearLayout parentLayout;
 
         public ViewHolder(View itemView)
         {
             super(itemView);
-
-            title = (TextView) itemView.findViewById(R.id.adapter_notebooks_title);
-
-            titleContentLayout = (LinearLayout) itemView.findViewById(R.id.adapter_notebooks_title_content_layout);
-            photoLayout = (LinearLayout) itemView.findViewById(R.id.adapter_notebooks_photo_layout);
-            parentLayout = (LinearLayout) itemView.findViewById(R.id.adapter_notebooks_parent_layout);
+            ButterKnife.bind(this, itemView);
         }
 
         public TextView getTitle() {
@@ -115,6 +119,11 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
     public int getItemCount()
     {
         return mDataSet.size();
+    }
+
+    public List<Notebook> getInternalData()
+    {
+        return mDataSet;
     }
 
     public Notebook getItemAtPosition(int position)

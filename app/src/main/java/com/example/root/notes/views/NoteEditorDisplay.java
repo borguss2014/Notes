@@ -22,6 +22,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.root.notes.DateTime;
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.functionality.DottedLineEditText;
 import com.example.root.notes.model.Note;
@@ -29,6 +30,8 @@ import com.example.root.notes.R;
 import com.example.root.notes.util.Utilities;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
@@ -40,9 +43,6 @@ import butterknife.ButterKnife;
 
 public class NoteEditorDisplay extends AppCompatActivity
 {
-    private EditText                mEditTextTitle;
-    private DottedLineEditText      mDLEditTextContent;
-
     private boolean                 mEdit;
     private boolean                 mNewNote;
     private boolean                 mNoteAltered;
@@ -51,6 +51,12 @@ public class NoteEditorDisplay extends AppCompatActivity
 
     @BindView(R.id.floating_action_edit_note)
     FloatingActionButton    floatingActionButton;
+
+    @BindView(R.id.note_et_title)
+    EditText                mEditTextTitle;
+
+    @BindView(R.id.note_et_content)
+    DottedLineEditText      mDLEditTextContent;
 
     InputMethodManager inputManager;
     android.support.v7.app.ActionBar actionBar;
@@ -76,8 +82,8 @@ public class NoteEditorDisplay extends AppCompatActivity
             {
                 mEdit = true;
 
-                enableEditText(mEditTextTitle, mEdit);
-                enableEditText(mDLEditTextContent, mEdit);
+                enableEditText(mEditTextTitle, true);
+                enableEditText(mDLEditTextContent, true);
 
                 floatingActionButton.hide();
 
@@ -91,9 +97,6 @@ public class NoteEditorDisplay extends AppCompatActivity
 
         mEdit = false;
         mNoteAltered = false;
-
-        mEditTextTitle = (EditText) findViewById(R.id.note_et_title);
-        mDLEditTextContent = (DottedLineEditText) findViewById(R.id.note_et_content);
 
         mReceivedNote = (Note) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY);
 
@@ -318,6 +321,19 @@ public class NoteEditorDisplay extends AppCompatActivity
     {
         Log.d("NOTE_ACTIVITY", "SAVING NOTE");
 
+        Date date = new Date();
+
+//        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+//        isoFormat.setTimeZone(TimeZone.getDefault());
+//
+//        Date formated = null;
+//
+//        try {
+//            formated = isoFormat.parse(date.toString());
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//        }
+
         int resultCode = -1;
 
         if (noteTitle.isEmpty())
@@ -329,25 +345,23 @@ public class NoteEditorDisplay extends AppCompatActivity
             mReceivedNote.setTitle(noteTitle);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+
+
+        if (mNewNote)
         {
-            LocalDateTime currentDate = Utilities.getCurrentDateTime();
+            mReceivedNote.setCreationDate(date);
 
-            if (mNewNote)
-            {
-                mReceivedNote.setCreationDate(currentDate);
-
-                resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
-            }
-            else
-            {
-                mReceivedNote.setModificationDate(currentDate);
-
-                resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
-            }
-
-            Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
+            resultCode = Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT;
         }
+        else
+        {
+            mReceivedNote.setModificationDate(date);
+
+            resultCode = Attributes.ActivityResultMessageType.OVERWRITE_NOTE_ACTIVITY_RESULT;
+        }
+
+        Log.d("NOTE_EDITOR_ACTIVITY", "Setting note date");
+
 
         mReceivedNote.setContent(noteContent);
 

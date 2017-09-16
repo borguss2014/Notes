@@ -5,26 +5,49 @@ import android.arch.persistence.room.TypeConverter;
 import android.arch.persistence.room.TypeConverters;
 import android.os.Build;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * TODO: Add a class header comment!
  */
 
-@TargetApi(Build.VERSION_CODES.O)
 public class DateConverter
 {
     @TypeConverter
-    public static LocalDateTime toDateTime(Long timestamp)
+    public static Date toDateTime(Long timestamp)
     {
-        return timestamp == null ? null : LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
+        if(timestamp == null)
+        {
+            return null;
+        }
+        else
+        {
+            return new Date(timestamp);
+        }
+
+        //return timestamp == null ? null : LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
     }
 
     @TypeConverter
-    public static Long toTimestamp(LocalDateTime date)
+    public static Long toTimestamp(Date date)
     {
-        return date == null ? null : date.atZone(ZoneId.systemDefault()).toEpochSecond();
+        if(date == null)
+        {
+            return null;
+        }
+        else
+        {
+            return date.getTime();
+        }
+
+        //return date == null ? null : date.atZone(ZoneId.systemDefault()).toEpochSecond();
     }
 }

@@ -3,6 +3,7 @@ package com.example.root.notes.functionality;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,9 +13,18 @@ import android.widget.TextView;
 
 import com.example.root.notes.model.Note;
 import com.example.root.notes.R;
+import com.example.root.notes.util.Utilities;
 import com.example.root.notes.views.NotesDisplay;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 
 /**
@@ -40,25 +50,28 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
 
     public static class ViewHolder extends RecyclerView.ViewHolder
     {
-        private final TextView title;
-        private final TextView content;
-        private final TextView date;
+        @BindView(R.id.adapter_notes_title)
+        TextView title;
 
-        private final LinearLayout titleContentLayout;
-        private final LinearLayout photoLayout;
-        private final LinearLayout parentLayout;
+        @BindView(R.id.adapter_notes_content)
+        TextView content;
+
+        @BindView(R.id.adapter_notes_date)
+        TextView date;
+
+        @BindView(R.id.adapter_notes_title_content_layout)
+        LinearLayout titleContentLayout;
+
+        @BindView(R.id.adapter_notes_photo_layout)
+        LinearLayout photoLayout;
+
+        @BindView(R.id.adapter_notes_parent_layout)
+        LinearLayout parentLayout;
 
         public ViewHolder(View itemView)
         {
             super(itemView);
-
-            title = (TextView) itemView.findViewById(R.id.adapter_notes_title);
-            content = (TextView) itemView.findViewById(R.id.adapter_notes_content);
-            date = (TextView) itemView.findViewById(R.id.adapter_notes_date);
-
-            titleContentLayout = (LinearLayout) itemView.findViewById(R.id.adapter_notes_title_content_layout);
-            photoLayout = (LinearLayout) itemView.findViewById(R.id.adapter_notes_photo_layout);
-            parentLayout = (LinearLayout) itemView.findViewById(R.id.adapter_notes_parent_layout);
+            ButterKnife.bind(this, itemView);
         }
 
         public TextView getTitleView()
@@ -147,68 +160,99 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
 
 //            String date = "DATE PLACEHOLDER";
 //
-//            Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
-//            calendar.setTime(new Date());
-
-//            Date currentDate = Utilities.getCurrentDateTime(calendar);
+//            Date currentDate = new Date();
+//
+//            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+//            isoFormat.setTimeZone(TimeZone.getDefault());
+//
+//            Date formattedCurrentDate = null;
+//
+//            try {
+//                formattedCurrentDate = isoFormat.parse(currentDate.toString());
+//            } catch (ParseException e) {
+//                e.printStackTrace();
+//            }
+//
 //            Date creationDate = note.getCreationDate();
 //            Date modificationDate = note.getModificationDate();
 //
-//            ElapsedTime elapsed;
-
-//            if(!note.getModificationDate().isDateSet())
+//            Calendar calCreationDate = Calendar.getInstance();
+//            calCreationDate.setTimeZone(TimeZone.getDefault());
+//            calCreationDate.setTime(creationDate);
+//
+//            Calendar calModificationDate = Calendar.getInstance();
+//            calModificationDate.setTimeZone(TimeZone.getDefault());
+//            calModificationDate.setTime(creationDate);
+//
+//            if(note.getModificationDate() == null)
 //            {
+//                long elapsed = (formattedCurrentDate.getTime() - creationDate.getTime()) / 1000;
 //
-//                elapsed = Utilities.elapsedTime(creationDate.getDateTime(), currentDate.getDateTime());
-//
-//                if(!elapsed.isOneMinuteElapsed())
+//                if(elapsed < 60)
 //                {
 //                    date = "Created seconds ago";
 //                }
-//                else if(!elapsed.isOneHourElapsed())
+//                else if(elapsed < 3600)
 //                {
-//                    date = "Created " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
+//                    date = "Created " + Long.toString(elapsed / 60) + " minutes ago";
 //                }
-//                else if(!elapsed.isOneDayElapsed())
+//                else if(elapsed < 86400)
 //                {
-//                    date = "Created " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
+//                    date = "Created " + Long.toString(elapsed / 3600) + " hours ago";
 //                }
-//                else if(elapsed.isOneDayElapsed())
+//                else if(elapsed > 86400)
 //                {
-//                    date = Integer.toString(creationDate.getMonth()) + "/"
-//                            + Integer.toString(creationDate.getDay()) + "/"
-//                            + Integer.toString(creationDate.getYear());
+//                    date = Integer.toString(calCreationDate.get(Calendar.MONTH) + 1) + "/"
+//                            + Integer.toString(calCreationDate.get(Calendar.DAY_OF_MONTH)) + "/"
+//                            + Integer.toString(calCreationDate.get(Calendar.YEAR));
 //                }
 //            }
 //            else
 //            {
-//                elapsed = Utilities.elapsedTime(modificationDate.getDateTime(), currentDate.getDateTime());
+//                long elapsed = (formattedCurrentDate.getTime() - modificationDate.getTime()) / 1000;
 //
-//                if(elapsed.getElapsedSeconds() < 60 &&
-//                        elapsed.getElapsedMinutes() == 0 &&
-//                        elapsed.getElapsedHours() == 0 &&
-//                        elapsed.getElapsedDays() == 0)
+//                long minutes = elapsed / 60;
+//                long hours = elapsed / 3600;
+//                long days = elapsed / 86400;
+//
+//
+//                if(elapsed < 60 &&
+//                        minutes == 0 &&
+//                        hours == 0 &&
+//                        days == 0)
 //                {
 //                    date = "Modified seconds ago";
 //                }
-//                else if(elapsed.getElapsedMinutes() < 60 && elapsed.getElapsedHours() == 0 && elapsed.getElapsedDays() == 0)
+//                else if(minutes < 60 && hours == 0 && days == 0)
 //                {
-//                    date = "Modified " + Long.toString(elapsed.getElapsedMinutes()) + " minutes ago";
+//                    date = "Modified " + Long.toString(minutes) + " minutes ago";
 //                }
-//                else if(elapsed.getElapsedHours() < 24 && elapsed.getElapsedDays() == 0)
+//                else if(hours < 24 && days == 0)
 //                {
-//                    date = "Modified " + Long.toString(elapsed.getElapsedHours()) + " hours ago";
+//                    date = "Modified " + Long.toString(hours) + " hours ago";
 //                }
-//                else if(elapsed.getElapsedDays() > 0)
+//                else if(days > 0)
 //                {
-//                    date = "Modified: " + Integer.toString(modificationDate.getMonth()) + "/"
-//                            + Integer.toString(modificationDate.getDay()) + "/"
-//                            + Integer.toString(modificationDate.getYear());
+//                    date = "Modified: " + Integer.toString(calModificationDate.get(Calendar.MONTH) + 1) + "/"
+//                            + Integer.toString(calModificationDate.get(Calendar.DAY_OF_MONTH)) + "/"
+//                            + Integer.toString(calModificationDate.get(Calendar.YEAR));
 //                }
 //            }
 
+            if(note.getModificationDate() == null)
+            {
+                String creationDate = "Created: " + Utilities.getRelativeTimespanString(mContext, note.getCreationDate().getTime(),
+                        DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS);
+                holder.getDateView().setText(creationDate);
 
-            //holder.getDateView().setText(Utilities.getRelativeTimespanString(mContext, note.getCreationDate().getTime(), DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS));
+            }
+            else
+            {
+                String modificationDate = "Modified : " + Utilities.getRelativeTimespanString(mContext, note.getModificationDate().getTime(),
+                        DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS);
+                holder.getDateView().setText(modificationDate);
+            }
+
             holder.getDateView().setTextColor(Color.GREEN);
         }
 
@@ -236,7 +280,11 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
     public int getItemCount()
     {
         return mDataSet.size();
+    }
 
+    public List<Note> getInternalData()
+    {
+        return mDataSet;
     }
 
     public Note getItemAtPosition(int position)

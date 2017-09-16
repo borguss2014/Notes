@@ -225,6 +225,13 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
     }
 
     @Override
+    public Object onRetainCustomNonConfigurationInstance()
+    {
+        Log.d("NotebooksDisplay", "Retaining adapter data");
+        return mNotebooksViewAdapter.getInternalData();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         MenuInflater inflater = getMenuInflater();
@@ -322,7 +329,16 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
     @Override
     public void setupView()
     {
-        mNotebooksViewAdapter = new NotebooksAdapter(getApplicationContext(), new ArrayList<Notebook>());
+        List<Notebook> notebooksList = (List<Notebook>) getLastCustomNonConfigurationInstance();
+
+        if(notebooksList == null)
+        {
+            mNotebooksViewAdapter = new NotebooksAdapter(getApplicationContext(), new ArrayList<>());
+        }
+        else
+        {
+            mNotebooksViewAdapter = new NotebooksAdapter(getApplicationContext(), notebooksList);
+        }
 
         mNotebooksView.setAdapter(mNotebooksViewAdapter);
         mNotebooksView.setLayoutManager(new LinearLayoutManager(this));

@@ -49,6 +49,7 @@ import com.example.root.notes.functionality.NotesAdapter;
 import com.example.root.notes.R;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +68,6 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     private static int                  mClickedNotePosition;
 
     private Note                        mReceivedNoteFromEditor;
-    private NoteViewModel               notesViewModel;
     private NotesAdapter                mNotesViewAdapter;
     private int mDefaultNotebookID;
 
@@ -106,9 +106,6 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
         appPreferences = this.getSharedPreferences("com.example.root.notes", Context.MODE_PRIVATE);
 
-        Log.d("NotesOnCreate", "Received notebook id: " + Integer.toString(mDefaultNotebookID));
-
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
@@ -129,15 +126,10 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
         {
             Log.d("NotesDisplay", "Presenter found ... recreating");
 
-            mPresenter = mPresenterViewModel.getPresenter();;
+            mPresenter = mPresenterViewModel.getPresenter();
             mPresenter.attachLifecycle(getLifecycle());
         }
 
-//        NoteViewModel.Factory noteViewModelFactory = new NoteViewModel.Factory(
-//                getApplication(), mDefaultNotebookID
-//        );
-//
-//        notesViewModel = ViewModelProviders.of(this, noteViewModelFactory).get(NoteViewModel.class);
 
         mSelectedItems = new ArrayList<>();
         mSelectMode = false;
@@ -161,12 +153,19 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    protected void onSaveInstanceState(Bundle outState)
+    {
 
-//        outState.putSerializable("NOTES", (Serializable) mReceivedNotebook.getNotes().getValue());
-//        outState.putInt("SIZE", mReceivedNotebook.getNotes().getValue().size());
+        super.onSaveInstanceState(outState);
     }
+
+    @Override
+    public Object onRetainCustomNonConfigurationInstance()
+    {
+        Log.d("NotesDisplay", "Retaining adapter data");
+        return mNotesViewAdapter.getInternalData();
+    }
+
 
     @Override
     protected void onStart() {
@@ -406,7 +405,16 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     @Override
     public void setupView()
     {
-        mNotesViewAdapter = new NotesAdapter(getApplicationContext(), new ArrayList<Note>());
+        List<Note> notesList = (List<Note>) getLastCustomNonConfigurationInstance();
+
+        if(notesList == null)
+        {
+            mNotesViewAdapter = new NotesAdapter(getApplicationContext(), new ArrayList<>());
+        }
+        else
+        {
+            mNotesViewAdapter = new NotesAdapter(getApplicationContext(), notesList);
+        }
 
         mNotesView.setAdapter(mNotesViewAdapter);
         mNotesView.setLayoutManager(new LinearLayoutManager(this));

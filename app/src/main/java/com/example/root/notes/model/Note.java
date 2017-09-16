@@ -7,6 +7,7 @@ import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 
 import com.example.root.notes.DateConverter;
+import com.example.root.notes.DateTime;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -44,11 +45,11 @@ public class Note implements Serializable
 
     @ColumnInfo(name = Note.NOTE_CREATION_DATE)
     @TypeConverters(DateConverter.class)
-    private LocalDateTime mCreationDate;
+    private Date mCreationDate;
 
     @ColumnInfo(name = Note.NOTE_MODIFICATION_DATE)
     @TypeConverters(DateConverter.class)
-    private LocalDateTime mModificationDate;
+    private Date mModificationDate;
 
 
     @Ignore
@@ -65,7 +66,7 @@ public class Note implements Serializable
         mModificationDate  = null;
     }
 
-    public Note(String title, String content, LocalDateTime creationDate, LocalDateTime modificationDate, int notebookId)
+    public Note(String title, String content, Date creationDate, Date modificationDate, int notebookId)
     {
         mFileName         = "";
 
@@ -104,22 +105,22 @@ public class Note implements Serializable
         mFileName = filename;
     }
 
-    public void setCreationDate(LocalDateTime cDate)
+    public void setCreationDate(Date cDate)
     {
         mCreationDate = cDate;
     }
 
-    public LocalDateTime getCreationDate()
+    public Date getCreationDate()
     {
         return mCreationDate;
     }
 
-    public void setModificationDate(LocalDateTime mDate)
+    public void setModificationDate(Date mDate)
     {
         mModificationDate = mDate;
     }
 
-    public LocalDateTime getModificationDate()
+    public Date getModificationDate()
     {
         return mModificationDate;
     }

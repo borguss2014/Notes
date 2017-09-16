@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.example.root.notes.model.Note;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ public class NoteViewModel extends AndroidViewModel
 {
     private List<Note> mNotesList;
 
-    public NoteViewModel(Application application, List<Note> notesList)
+    public NoteViewModel(Application application)
     {
         super(application);
     }
@@ -30,25 +31,8 @@ public class NoteViewModel extends AndroidViewModel
         return mNotesList;
     }
 
-    public static class Factory extends ViewModelProvider.NewInstanceFactory
+    public void setNotesList(List<Note> notes)
     {
-
-        @NonNull
-        private final Application mApplication;
-
-        private List<Note> mNotesList;
-
-        public Factory(@NonNull Application application, List<Note> notesList)
-        {
-            mApplication = application;
-            mNotesList = notesList;
-        }
-
-        @Override
-        public <T extends ViewModel> T create(Class<T> modelClass)
-        {
-            //noinspection unchecked
-            return (T) new NoteViewModel(mApplication, mNotesList);
-        }
+        mNotesList = notes;
     }
 }
