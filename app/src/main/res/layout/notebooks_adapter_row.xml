@@ -5,12 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingBottom="10dp">
+    android:paddingBottom="8dp">
 
     <LinearLayout
         android:id="@+id/adapter_notebooks_title_content_layout"
         android:layout_width="244dp"
-        android:layout_height="match_parent"
+        android:layout_height="40dp"
         android:background="@android:color/background_light"
         android:orientation="vertical">
 
@@ -18,8 +18,7 @@
         <TextView
             android:id="@+id/adapter_notebooks_title"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="3dp"
+            android:layout_height="match_parent"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:paddingTop="5dp"
@@ -34,8 +33,15 @@
         android:id="@+id/adapter_notebooks_photo_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/background_light"
         android:orientation="vertical">
 
+        <Button
+            android:id="@+id/adapter_notebooks_options"
+            android:layout_width="37dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="@mipmap/ic_dots_vertical_black_24dp" />
     </LinearLayout>
 
 </LinearLayout>

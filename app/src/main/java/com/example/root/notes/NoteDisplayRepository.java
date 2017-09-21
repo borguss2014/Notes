@@ -1,8 +1,11 @@
 package com.example.root.notes;
 
+import android.content.SharedPreferences;
+
 import com.example.root.notes.database.AppDatabase;
 import com.example.root.notes.model.Note;
 import com.example.root.notes.model.Notebook;
+import com.example.root.notes.util.Attributes;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -16,10 +19,12 @@ import io.reactivex.Single;
 public class NoteDisplayRepository implements NoteRepository
 {
     private AppDatabase mAppDatabase;
+    private SharedPreferences mPreferences;
 
-    public NoteDisplayRepository(AppDatabase mAppDatabase)
+    public NoteDisplayRepository(AppDatabase appDatabase, SharedPreferences preferences)
     {
-        this.mAppDatabase = mAppDatabase;
+        mAppDatabase = appDatabase;
+        mPreferences = preferences;
     }
 
 
@@ -126,5 +131,20 @@ public class NoteDisplayRepository implements NoteRepository
                 return mAppDatabase.notebookModel().getNotebookByName(name);
             }
         });
+    }
+
+    @Override
+    public int retrieveDefaultNotebookID()
+    {
+        return mPreferences.getInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, -1);
+    }
+
+    @Override
+    public void insertDefaultNotebookID(int notebookID)
+    {
+        mPreferences
+                .edit()
+                .putInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, notebookID)
+                .apply();
     }
 }

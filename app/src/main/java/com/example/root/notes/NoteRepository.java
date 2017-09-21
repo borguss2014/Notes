@@ -24,4 +24,7 @@ public interface NoteRepository
 
     Single<Long> insertDefaultNotebook(Notebook notebook);
     Single<Notebook> retrieveNotebookByName(String name);
+
+    int retrieveDefaultNotebookID();
+    void insertDefaultNotebookID(int notebookID);
 }

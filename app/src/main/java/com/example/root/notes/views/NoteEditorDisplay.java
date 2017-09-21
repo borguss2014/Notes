@@ -346,7 +346,6 @@ public class NoteEditorDisplay extends AppCompatActivity
         }
 
 
-
         if (mNewNote)
         {
             mReceivedNote.setCreationDate(date);

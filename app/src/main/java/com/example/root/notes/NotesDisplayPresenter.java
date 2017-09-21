@@ -270,4 +270,16 @@ public class NotesDisplayPresenter implements NotePresenter
                 })
         );
     }
+
+    @Override
+    public int getDefaultNotebookID()
+    {
+        return repository.retrieveDefaultNotebookID();
+    }
+
+    @Override
+    public void updateDefaultNotebookID(int notebookID)
+    {
+        repository.insertDefaultNotebookID(notebookID);
+    }
 }

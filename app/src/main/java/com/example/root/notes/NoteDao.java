@@ -40,6 +40,9 @@ public interface NoteDao
     @Query("DELETE FROM " + Note.TABLE_NAME)
     int deleteAllNotes();
 
+    @Query("DELETE FROM " + Note.TABLE_NAME + " WHERE " + Note.NOTEBOOK_ID + " = :notebookId")
+    int deleteAllNotesFromNotebook(int notebookId);
+
     @Query("DELETE FROM " + Note.TABLE_NAME)
     void nukeNotes();
 

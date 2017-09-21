@@ -4,11 +4,10 @@ import android.arch.lifecycle.LifecycleRegistry;
 import android.arch.lifecycle.LifecycleRegistryOwner;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -26,21 +25,16 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.root.notes.NoteDisplayRepository;
 import com.example.root.notes.NoteRepository;
-import com.example.root.notes.NotebookDao;
-import com.example.root.notes.NotebookDisplayRepository;
-import com.example.root.notes.NotebookRepository;
-import com.example.root.notes.NotebooksDisplayPresenter;
-import com.example.root.notes.NotebooksDisplayView;
 import com.example.root.notes.NotesDisplayPresenter;
 import com.example.root.notes.NotesDisplayView;
 import com.example.root.notes.PresenterViewModel;
 import com.example.root.notes.database.AppDatabase;
 import com.example.root.notes.database.DatabaseCreator;
-import com.example.root.notes.database.NoteViewModel;
 import com.example.root.notes.model.Notebook;
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.util.Comparison;
@@ -49,7 +43,6 @@ import com.example.root.notes.functionality.NotesAdapter;
 import com.example.root.notes.R;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,15 +62,14 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
     private Note                        mReceivedNoteFromEditor;
     private NotesAdapter                mNotesViewAdapter;
-    private int mDefaultNotebookID;
+
+    private int mSelectedNotebookID;
 
     private ActionBarDrawerToggle       mDrawerToggle;
     private ArrayAdapter<String>        mDrawerListAdapter;
 
     private PresenterViewModel<NotesDisplayPresenter> mPresenterViewModel;
     private NotesDisplayPresenter mPresenter;
-
-    private SharedPreferences appPreferences;
 
     @BindView(R.id.floating_action_add_note)
     FloatingActionButton floatingActionButton;
@@ -90,6 +82,12 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
     @BindView(R.id.notes_nav_list)
     ListView mDrawerList;
+
+    @BindView(R.id.notes_list_loading)
+    ProgressBar mProgressBar;
+
+    @BindView(R.id.notes_list_empty)
+    TextView mEmptyNotesListMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -104,8 +102,6 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
 
-        appPreferences = this.getSharedPreferences("com.example.root.notes", Context.MODE_PRIVATE);
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
@@ -115,6 +111,8 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
         setupView();
 
         mPresenterViewModel = ViewModelProviders.of(this).get(PresenterViewModel.class);
+
+        setViewState(Attributes.ViewState.LOADING);
 
         if(mPresenterViewModel.getPresenter() == null)
         {
@@ -128,6 +126,8 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
             mPresenter = mPresenterViewModel.getPresenter();
             mPresenter.attachLifecycle(getLifecycle());
+
+            mSelectedNotebookID = mPresenter.getDefaultNotebookID();
         }
 
 
@@ -305,7 +305,7 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                 {
                     Log.d("NOTES_ACTIVITY_RESULT", "New note result");
 
-                    mReceivedNoteFromEditor.setNotebookId(mDefaultNotebookID);
+                    mReceivedNoteFromEditor.setNotebookId(mSelectedNotebookID);
 
                     mPresenter.addNote(mReceivedNoteFromEditor);
 
@@ -315,7 +315,7 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                 {
                     Log.d("NOTES_ACTIVITY_RESULT", "Overwrite note result");
 
-                    mReceivedNoteFromEditor.setNotebookId(mDefaultNotebookID);
+                    mReceivedNoteFromEditor.setNotebookId(mSelectedNotebookID);
 
                     mPresenter.updateNote(mReceivedNoteFromEditor);
 
@@ -337,9 +337,9 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
         }
         else if(requestCode == Attributes.ActivityMessageType.NOTEBOOKS_LIST_ACTIVITY && data != null)
         {
-            mDefaultNotebookID = (int) data.getIntExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, -1);
+            mSelectedNotebookID = (int) data.getIntExtra(Attributes.ActivityMessageType.NOTEBOOK_FOR_ACTIVITY, -1);
 
-            Log.d("DEFAULT_NOTEBOOK_ID", "DEFAULT ID : " + mDefaultNotebookID);
+            Log.d("CLICKED_NOTEBOOK", "ID : " + mSelectedNotebookID);
 
             switch(resultCode)
             {
@@ -349,7 +349,9 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
                     mNotesViewAdapter.clear();
 
-                    mPresenter.getNotesForNotebook(mDefaultNotebookID);
+                    mPresenter.getNotesForNotebook(mSelectedNotebookID);
+
+                    setViewState(Attributes.ViewState.LOADING);
 
                     break;
                 }
@@ -506,7 +508,11 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     @Override
     public void initializePresenter(AppDatabase appDatabase)
     {
-        NoteRepository repository = new NoteDisplayRepository(appDatabase);
+//        NoteRepository repository = new NoteDisplayRepository(appDatabase,
+//                getApplicationContext().getSharedPreferences("com.example.root.notes", Context.MODE_PRIVATE));
+
+        NoteRepository repository = new NoteDisplayRepository(appDatabase,
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
 
         NotesDisplayPresenter presenter = new NotesDisplayPresenter(this, repository, AndroidSchedulers.mainThread());
 
@@ -515,15 +521,16 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
         Log.d("PresenterInit", "Presenter initialized ... loading notes");
 
-        mDefaultNotebookID = appPreferences.getInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, -1);
+        //mSelectedNotebookID = appPreferences.getInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, -1);
+        mSelectedNotebookID = mPresenter.getDefaultNotebookID();
 
-        Log.d("PresenterInit", "Default notebook id : " + mDefaultNotebookID);
+        Log.d("PresenterInit", "Default notebook id : " + mSelectedNotebookID);
 
-        if(mDefaultNotebookID == -1)
+        if(mSelectedNotebookID == Attributes.AppPreferences.NO_DEFAULT_NOTEBOOK)
         {
             Log.d("PresenterInit", "No default notebook found ... creating");
 
-            Notebook defaultNotebook = new Notebook("Untitled");
+            Notebook defaultNotebook = new Notebook("Default notebook");
 
             mPresenter.addDefaultNotebook(defaultNotebook);
         }
@@ -536,12 +543,14 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     {
         mNotesViewAdapter.clear();
         mNotesViewAdapter.addItems(notes);
+
+        setViewState(Attributes.ViewState.LOADED);
     }
 
     @Override
     public void displayNoNotes()
     {
-        Toast.makeText(getApplicationContext(), "No notes found!", Toast.LENGTH_LONG).show();
+        setViewState(Attributes.ViewState.EMPTY);
     }
 
     @Override
@@ -558,6 +567,11 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                         openNote(note);
                     }
                 }).show();
+
+        if(mNotesViewAdapter.getItemCount() == 1)
+        {
+            setViewState(Attributes.ViewState.LOADED);
+        }
     }
 
     @Override
@@ -623,6 +637,11 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                         mPresenter.addNote(note);
                     }
                 }).show();
+
+        if(mNotesViewAdapter.getItemCount() == 0)
+        {
+            setViewState(Attributes.ViewState.EMPTY);
+        }
     }
 
     @Override
@@ -653,11 +672,13 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
                 if(item.equals(Attributes.NavigationDrawerList.NAV_ITEM_ALL_NOTES))
                 {
-                    mDefaultNotebookID = appPreferences.getInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, -1);
+                    mSelectedNotebookID = mPresenter.getDefaultNotebookID();
 
                     mNotesViewAdapter.clear();
 
                     mPresenter.getAllNotes();
+
+                    setViewState(Attributes.ViewState.LOADING);
                 }
                 else if(item.equals(Attributes.NavigationDrawerList.NAV_ITEM_NOTEBOOKS))
                 {
@@ -702,10 +723,9 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     {
         int defaultNotebookID = notebook.getId();
 
-        mDefaultNotebookID = defaultNotebookID;
+        mSelectedNotebookID = defaultNotebookID;
 
-        appPreferences.edit().putInt(Attributes.AppPreferences.DEFAULT_NOTEBOOK, defaultNotebookID)
-                .apply();
+        mPresenter.updateDefaultNotebookID(defaultNotebookID);
     }
 
     @Override
@@ -719,5 +739,36 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    private void setViewState(int state)
+    {
+        switch (state)
+        {
+            case Attributes.ViewState.EMPTY:
+            {
+                mNotesView.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
+
+                mEmptyNotesListMessage.setVisibility(View.VISIBLE);
+                break;
+            }
+            case Attributes.ViewState.LOADING:
+            {
+                mNotesView.setVisibility(View.GONE);
+                mEmptyNotesListMessage.setVisibility(View.GONE);
+
+                mProgressBar.setVisibility(View.VISIBLE);
+                break;
+            }
+            case Attributes.ViewState.LOADED:
+            {
+                mEmptyNotesListMessage.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
+
+                mNotesView.setVisibility(View.VISIBLE);
+                break;
+            }
+        }
     }
 }

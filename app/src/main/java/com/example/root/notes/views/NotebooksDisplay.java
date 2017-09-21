@@ -2,12 +2,11 @@ package com.example.root.notes.views;
 
 import android.arch.lifecycle.LifecycleRegistry;
 import android.arch.lifecycle.LifecycleRegistryOwner;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.support.annotation.Nullable;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -22,6 +21,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.root.notes.NotebookDisplayRepository;
@@ -61,6 +62,12 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
     @BindView(R.id.notebooks_list_view)
     RecyclerView mNotebooksView;
 
+    @BindView(R.id.notebooks_list_empty)
+    TextView mEmptyNotebooksListMessage;
+
+    @BindView(R.id.notebooks_list_loading)
+    ProgressBar mProgressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -74,7 +81,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
         mPresenterViewModel = ViewModelProviders.of(this).get(PresenterViewModel.class);
 
-        setupView();
+        setViewState(Attributes.ViewState.LOADING);
 
         if(mPresenterViewModel.getPresenter() == null)
         {
@@ -92,6 +99,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
             mPresenter.attachLifecycle(getLifecycle());
         }
 
+        setupView();
 
 //        mNotebooksView.setOnScrollListener(new EndlessScrollListener()
 //        {
@@ -163,7 +171,9 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
     {
         Log.d("OnClickNotebookActivity", "Clicking " + getResources().getResourceEntryName(view.getId()));
 
-        if(view.getId() == R.id.floating_action_add_notebook)
+        int viewId = view.getId();
+
+        if(viewId == R.id.floating_action_add_notebook)
         {
             createNotebookDialog();
         }
@@ -333,11 +343,11 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
         if(notebooksList == null)
         {
-            mNotebooksViewAdapter = new NotebooksAdapter(getApplicationContext(), new ArrayList<>());
+            mNotebooksViewAdapter = new NotebooksAdapter(NotebooksDisplay.this, new ArrayList<>(), mPresenter);
         }
         else
         {
-            mNotebooksViewAdapter = new NotebooksAdapter(getApplicationContext(), notebooksList);
+            mNotebooksViewAdapter = new NotebooksAdapter(NotebooksDisplay.this, notebooksList, mPresenter);
         }
 
         mNotebooksView.setAdapter(mNotebooksViewAdapter);
@@ -400,12 +410,14 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
     {
         mNotebooksViewAdapter.clear();
         mNotebooksViewAdapter.addItems(notebookList);
+
+        setViewState(Attributes.ViewState.LOADED);
     }
 
     @Override
     public void displayNoNotebooks()
     {
-        Toast.makeText(this, "No notebooks found !", Toast.LENGTH_LONG).show();
+        setViewState(Attributes.ViewState.EMPTY);
     }
 
     @Override
@@ -425,6 +437,11 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
                         openNotebook(notebook);
                     }
                 }).show();
+
+        if(mNotebooksViewAdapter.getItemCount() == 0)
+        {
+            setViewState(Attributes.ViewState.LOADED);
+        }
     }
 
     @Override
@@ -442,13 +459,77 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
     }
 
     @Override
+    public void displayNotebookUpdated()
+    {
+        Toast.makeText(getApplicationContext(), "Notebook updated", Toast.LENGTH_SHORT).show();
+
+        mPresenter.loadNotebooks();
+    }
+
+    @Override
+    public void displayNoNotebookUpdated()
+    {
+        Toast.makeText(getApplicationContext(), "Issue occurred: notebook not updated", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void displayNotebookDeleted()
+    {
+        Toast.makeText(getApplicationContext(), "Notebook deleted", Toast.LENGTH_SHORT).show();
+
+        mPresenter.loadNotebooks();
+
+    }
+
+    @Override
+    public void displayNoNotebookDeleted()
+    {
+        Toast.makeText(getApplicationContext(), "Issue occurred: notebook not deleted", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public void initializePresenter(AppDatabase appDatabase)
     {
-        NotebookRepository repository = new NotebookDisplayRepository(appDatabase);
+//        NotebookRepository repository = new NotebookDisplayRepository(appDatabase,
+//                getApplicationContext().getSharedPreferences("com.example.root.notes", Context.MODE_PRIVATE));
+
+        NotebookRepository repository = new NotebookDisplayRepository(appDatabase,
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
 
         NotebooksDisplayPresenter presenter = new NotebooksDisplayPresenter(this, repository, AndroidSchedulers.mainThread());
 
         mPresenterViewModel.setPresenter(presenter);
         mPresenter = presenter;
+    }
+
+    private void setViewState(int state)
+    {
+        switch (state)
+        {
+            case Attributes.ViewState.EMPTY:
+            {
+                mNotebooksView.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
+
+                mEmptyNotebooksListMessage.setVisibility(View.VISIBLE);
+                break;
+            }
+            case Attributes.ViewState.LOADING:
+            {
+                mNotebooksView.setVisibility(View.GONE);
+                mEmptyNotebooksListMessage.setVisibility(View.GONE);
+
+                mProgressBar.setVisibility(View.VISIBLE);
+                break;
+            }
+            case Attributes.ViewState.LOADED:
+            {
+                mEmptyNotebooksListMessage.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
+
+                mNotebooksView.setVisibility(View.VISIBLE);
+                break;
+            }
+        }
     }
 }

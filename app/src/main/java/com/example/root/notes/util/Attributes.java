@@ -53,5 +53,19 @@ public final class Attributes
     public static class AppPreferences
     {
         public static final String DEFAULT_NOTEBOOK = "DEFAULT_NOTEBOOK";
+        public static final int NO_DEFAULT_NOTEBOOK = -1;
+    }
+
+    public static class NotebookOverflowAction
+    {
+        public static final int MODE_EDIT = 0;
+        public static final int MODE_DELETE = 1;
+    }
+
+    public static class ViewState
+    {
+        public static final int EMPTY = 0;
+        public static final int LOADING = 1;
+        public static final int LOADED = 2;
     }
 }

@@ -2,6 +2,7 @@ package com.example.root.notes.util;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -30,6 +31,8 @@ import java.util.UUID;
  */
 
 public class Utilities {
+
+    private static int mDefaultNotebook = -1;
 
     public static boolean saveToFile(FileOutputStream fileOutputStream, Note note)
     {
@@ -224,6 +227,16 @@ public class Utilities {
         return UUID.randomUUID().toString() + extension;
     }
 
+    public static int getDefaultNotebook()
+    {
+        return mDefaultNotebook;
+    }
+
+    public static void setDefaultNotebook(int id)
+    {
+        mDefaultNotebook = id;
+    }
+
     public static CharSequence getRelativeTimespanString(Context context, long time, long minResolution, long transitionResolution) {
         long currentTime = new Date().getTime();
         long timeDiff = currentTime - time;
@@ -234,11 +247,5 @@ public class Utilities {
             return DateUtils.formatDateTime(context, time, 0);
         }
     }
-
-//    @TargetApi(Build.VERSION_CODES.O)
-//    public static LocalDateTime getCurrentDateTime()
-//    {
-//        return LocalDateTime.now();
-//    }
 
 }

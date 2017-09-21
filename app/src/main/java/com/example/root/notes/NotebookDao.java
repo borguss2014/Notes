@@ -33,8 +33,8 @@ public interface NotebookDao
     Long addNotebook(Notebook notebook);
 
     @Update
-    void updateNotebook(Notebook notebook);
+    int updateNotebook(Notebook notebook);
 
     @Delete
-    void deleteNotebook(Notebook notebook);
+    int deleteNotebook(Notebook notebook);
 }

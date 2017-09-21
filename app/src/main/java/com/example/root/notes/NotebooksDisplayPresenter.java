@@ -97,6 +97,89 @@ public class NotebooksDisplayPresenter implements LifecycleObserver, NotebookPre
     }
 
     @Override
+    public void updateNotebook(Notebook notebook)
+    {
+        compositeDisposable.add(repository.updateNotebook(notebook)
+                .subscribeOn(Schedulers.io())
+                .observeOn(mainScheduler)
+                .subscribeWith(new DisposableSingleObserver<Long>()
+                {
+                    @Override
+                    public void onSuccess(Long aLong)
+                    {
+                        if(aLong == -1)
+                        {
+                            view.displayNoNotebookUpdated();
+                            return;
+                        }
+
+                        view.displayNotebookUpdated();
+                    }
+
+                    @Override
+                    public void onError(Throwable e)
+                    {
+                        e.printStackTrace();
+                    }
+                })
+        );
+    }
+
+    @Override
+    public void deleteNotebook(Notebook notebook)
+    {
+        compositeDisposable.add(repository.deleteNotebook(notebook)
+                .subscribeOn(Schedulers.io())
+                .observeOn(mainScheduler)
+                .subscribeWith(new DisposableSingleObserver<Long>()
+                {
+                    @Override
+                    public void onSuccess(Long aLong)
+                    {
+                        if(aLong == -1)
+                        {
+                            view.displayNoNotebookDeleted();
+                            return;
+                        }
+
+                        deleteAllNotesForNotebook(notebook.getId());
+                    }
+
+                    @Override
+                    public void onError(Throwable e)
+                    {
+                        e.printStackTrace();
+                    }
+                })
+        );
+    }
+
+    @Override
+    public void deleteAllNotesForNotebook(int notebookId)
+    {
+        compositeDisposable.add(repository.deleteAllNotesFromNotebook(notebookId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(mainScheduler)
+                .subscribeWith(new DisposableSingleObserver<Long>()
+                {
+                    @Override
+                    public void onSuccess(Long aLong)
+                    {
+                        if(aLong != -1)
+                        {
+                            view.displayNotebookDeleted();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e)
+                    {
+                        e.printStackTrace();
+                    }
+                }));
+    }
+
+    @Override
     public void getNotebookByName(String name)
     {
         compositeDisposable.add(repository.retrieveNotebookByName(name)
@@ -135,5 +218,17 @@ public class NotebooksDisplayPresenter implements LifecycleObserver, NotebookPre
     public void unsubscribe()
     {
         compositeDisposable.clear();
+    }
+
+    @Override
+    public int getDefaultNotebookID()
+    {
+        return repository.retrieveDefaultNotebookID();
+    }
+
+    @Override
+    public void updateDefaultNotebookID(int notebookID)
+    {
+        repository.insertDefaultNotebookID(notebookID);
     }
 }

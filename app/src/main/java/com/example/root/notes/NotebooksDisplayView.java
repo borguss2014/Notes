@@ -17,4 +17,10 @@ public interface NotebooksDisplayView extends BaseView
 
     void displayNotebookAdded(Notebook notebook);
     void displayNoNotebookAdded();
+
+    void displayNotebookUpdated();
+    void displayNoNotebookUpdated();
+
+    void displayNotebookDeleted();
+    void displayNoNotebookDeleted();
 }

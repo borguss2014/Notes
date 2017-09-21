@@ -11,4 +11,10 @@
     <string name="nav_drawer_open">Open</string>
     <string name="nav_drawer_close">Close</string>
 
+    <string name="notebook_overflow_string_edit">Edit</string>
+    <string name="notebook_overflow_string_delete">Delete</string>
+
+    <string name="notes_list_empty">You don\'t have any notes written</string>
+    <string name="notebooks_list_empty">No notebook created</string>
+
 </resources>

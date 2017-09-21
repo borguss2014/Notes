@@ -10,7 +10,11 @@ public interface NotebookPresenter extends BasePresenter
 {
     void loadNotebooks();
     void addNotebook(Notebook notebook);
+    void updateNotebook(Notebook notebook);
+    void deleteNotebook(Notebook notebook);
     void getNotebookByName(String name);
+
+    void deleteAllNotesForNotebook(int notebookId);
 
     void unsubscribe();
 }
