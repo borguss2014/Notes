@@ -30,6 +30,7 @@ import com.example.root.notes.NotebooksDisplayPresenter;
 import com.example.root.notes.NotebooksDisplayView;
 import com.example.root.notes.PresenterViewModel;
 import com.example.root.notes.NotebookRepository;
+import com.example.root.notes.RecyclerItemListener;
 import com.example.root.notes.database.AppDatabase;
 import com.example.root.notes.database.DatabaseCreator;
 import com.example.root.notes.util.Attributes;
@@ -376,27 +377,24 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
             }
         });
 
-        mNotebooksViewAdapter.setClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                int itemPosition = mNotebooksView.indexOfChild(view);
+        mNotebooksView.addOnItemTouchListener(new RecyclerItemListener(getApplicationContext(), mNotebooksView,
+                new RecyclerItemListener.RecyclerTouchListener()
+                {
+                    @Override
+                    public void onClickItem(View v, int position)
+                    {
+                        Notebook notebook = mNotebooksViewAdapter.getItemAtPosition(position);
 
-                Notebook notebook = mNotebooksViewAdapter.getItemAtPosition(itemPosition);
+                        openNotebook(notebook);
+                    }
 
-                openNotebook(notebook);
-            }
-        });
+                    @Override
+                    public void onLongClickItem(View v, int position)
+                    {
 
-        mNotebooksViewAdapter.setLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View view)
-            {
-                return false;
-            }
-        });
+                    }
+                })
+        );
     }
 
     @Override

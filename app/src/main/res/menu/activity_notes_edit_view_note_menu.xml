@@ -3,6 +3,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/action_notes_move_note"
+        android:enabled="true"
+        android:title="@string/note_activity_move" />
+    <item
         android:id="@+id/action_notes_edit_note"
         android:enabled="false"
         android:icon="@android:drawable/ic_menu_edit"

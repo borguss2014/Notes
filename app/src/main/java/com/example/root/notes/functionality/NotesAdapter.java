@@ -39,8 +39,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
     private List<Integer> mSelectedItems;
 
     private final int WRAP_CONTENT_LENGTH = 35;
-    private View.OnClickListener mClickListener;
-    private View.OnLongClickListener mLongClickListener;
 
     public NotesAdapter(Context context, List<Note> dataSet)
     {
@@ -50,58 +48,29 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
 
     public static class ViewHolder extends RecyclerView.ViewHolder
     {
-        @BindView(R.id.adapter_notes_title)
         TextView title;
-
-        @BindView(R.id.adapter_notes_content)
         TextView content;
-
-        @BindView(R.id.adapter_notes_date)
         TextView date;
 
-        @BindView(R.id.adapter_notes_title_content_layout)
         LinearLayout titleContentLayout;
-
-        @BindView(R.id.adapter_notes_photo_layout)
         LinearLayout photoLayout;
-
-        @BindView(R.id.adapter_notes_parent_layout)
         LinearLayout parentLayout;
+
+        View mItemView;
 
         public ViewHolder(View itemView)
         {
             super(itemView);
-            ButterKnife.bind(this, itemView);
-        }
 
-        public TextView getTitleView()
-        {
-            return title;
-        }
+            title = itemView.findViewById(R.id.adapter_notes_title);
+            content = itemView.findViewById(R.id.adapter_notes_content);
+            date = itemView.findViewById(R.id.adapter_notes_date);
 
-        public TextView getContentView()
-        {
-            return content;
-        }
+            titleContentLayout = itemView.findViewById(R.id.adapter_notes_title_content_layout);
+            photoLayout = itemView.findViewById(R.id.adapter_notes_photo_layout);
+            parentLayout = itemView.findViewById(R.id.adapter_notes_parent_layout);
 
-        public TextView getDateView()
-        {
-            return date;
-        }
-
-        public LinearLayout getTitleContentLayoutView()
-        {
-            return titleContentLayout;
-        }
-
-        public LinearLayout getPhotoLayoutView()
-        {
-            return photoLayout;
-        }
-
-        public LinearLayout getParentLayoutView()
-        {
-            return parentLayout;
+            mItemView = itemView;
         }
     }
 
@@ -111,28 +80,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.notes_adapter_row, parent, false);
 
-        NotesAdapter.ViewHolder holder = new NotesAdapter.ViewHolder(view);
-
-        holder.itemView.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                mClickListener.onClick(v);
-            }
-        });
-
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View v)
-            {
-                mLongClickListener.onLongClick(v);
-                return false;
-            }
-        });
-
-        return holder;
+        return new ViewHolder(view);
     }
 
     @Override
@@ -146,16 +94,16 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
         {
             Log.d("ADAPTER", note.getFileName());
 
-            holder.getTitleView().setText(note.getTitle());
+            holder.title.setText(note.getTitle());
 
             if (note.getContent().length() > WRAP_CONTENT_LENGTH)
             {
                 String wrapped_note_description = note.getContent().substring(0, WRAP_CONTENT_LENGTH) + "...";
-                holder.getContentView().setText(wrapped_note_description);
+                holder.content.setText(wrapped_note_description);
             }
             else
             {
-                holder.getContentView().setText(note.getContent());
+                holder.content.setText(note.getContent());
             }
 
 //            String date = "DATE PLACEHOLDER";
@@ -243,37 +191,39 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
             {
                 String creationDate = "Created: " + Utilities.getRelativeTimespanString(mContext, note.getCreationDate().getTime(),
                         DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS);
-                holder.getDateView().setText(creationDate);
+                holder.date.setText(creationDate);
 
             }
             else
             {
                 String modificationDate = "Modified : " + Utilities.getRelativeTimespanString(mContext, note.getModificationDate().getTime(),
                         DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS);
-                holder.getDateView().setText(modificationDate);
+                holder.date.setText(modificationDate);
             }
 
-            holder.getDateView().setTextColor(Color.GREEN);
+            holder.date.setTextColor(Color.GREEN);
         }
 
         if(NotesDisplay.selectModeStatus())
         {
             if(mSelectedItems.contains(position))
             {
-                holder.getTitleContentLayoutView().setBackgroundColor(Color.BLUE);
-                holder.getPhotoLayoutView().setBackgroundColor(Color.BLUE);
+                holder.titleContentLayout.setBackgroundColor(Color.BLUE);
+                holder.photoLayout.setBackgroundColor(Color.BLUE);
             }
             else
             {
-                holder.getTitleContentLayoutView().setBackgroundColor(Color.WHITE);
-                holder.getPhotoLayoutView().setBackgroundColor(Color.WHITE);
+                holder.titleContentLayout.setBackgroundColor(Color.WHITE);
+                holder.photoLayout.setBackgroundColor(Color.WHITE);
             }
         }
         else if(!NotesDisplay.selectModeStatus() && mSelectedItems.size() >= 0)
         {
-            holder.getTitleContentLayoutView().setBackgroundColor(Color.WHITE);
-            holder.getPhotoLayoutView().setBackgroundColor(Color.WHITE);
+            holder.titleContentLayout.setBackgroundColor(Color.WHITE);
+            holder.photoLayout.setBackgroundColor(Color.WHITE);
         }
+
+        holder.mItemView.setTag(note);
     }
 
     @Override
@@ -292,16 +242,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
         return mDataSet.get(position);
     }
 
-    public void setClickListener(View.OnClickListener callback)
-    {
-        mClickListener = callback;
-    }
-
-    public void setLongClickListener(View.OnLongClickListener callback )
-    {
-        mLongClickListener = callback;
-    }
-
     public void addItems(List<Note> newDataset)
     {
         mDataSet = newDataset;
@@ -311,7 +251,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
     public void addItem(Note note)
     {
         mDataSet.add(note);
-        notifyDataSetChanged();
+        notifyItemInserted(mDataSet.indexOf(note));
     }
 
     public int getItemPosition(Note note)

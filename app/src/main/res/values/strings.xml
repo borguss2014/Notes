@@ -6,6 +6,7 @@
 
     <string name="note_activity_save">Save</string>
     <string name="note_activity_edit">Edit</string>
+    <string name="note_activity_move">Move note</string>
     <string name="note_activity_delete">Delete</string>
 
     <string name="nav_drawer_open">Open</string>

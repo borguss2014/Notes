@@ -19,13 +19,13 @@
             android:id="@+id/adapter_notebooks_title"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:paddingTop="5dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:textColorHint="@android:color/black"
             android:visibility="visible"
-            tools:text="Title" />
+            android:text="Title" />
 
     </LinearLayout>
 

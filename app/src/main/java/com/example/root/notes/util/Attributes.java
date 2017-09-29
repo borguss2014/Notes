@@ -20,12 +20,15 @@ public final class Attributes
         public static final int NOTE_EDITOR_ACTIVITY = 0;
         public static final int NOTES_LIST_ACTIVITY = 1;
         public static final int NOTEBOOKS_LIST_ACTIVITY = 2;
+        public static final int MOVE_NOTE_DIALOG = 3;
+        public static final int NEW_NOTE_LOCATION = 4;
 
         public static final String NOTE_FROM_ACTIVITY = "NOTE_FROM_ACTIVITY";
         public static final String NOTE_FOR_ACTIVITY = "NOTE_FOR_ACTIVITY";
 
         public static final String NOTEBOOK_FROM_ACTIVITY = "NOTEBOOK_FROM_ACTIVITY";
         public static final String NOTEBOOK_FOR_ACTIVITY = "NOTEBOOK_FOR_ACTIVITY";
+        public static final String MOVE_NOTE_DIALOG_DATA = "MOVE_NOTE_DIALOG_DATA";
     }
 
     public static class ActivityResultMessageType

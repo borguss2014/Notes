@@ -1,47 +1,50 @@
 package com.example.root.notes.views;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.root.notes.DateTime;
+import com.example.root.notes.NoteEditorDisplayPresenter;
+import com.example.root.notes.NoteEditorDisplayRepository;
+import com.example.root.notes.NoteEditorDisplayView;
+import com.example.root.notes.RecyclerItemListener;
+import com.example.root.notes.database.AppDatabase;
+import com.example.root.notes.functionality.NoteEditorDialogAdapter;
+import com.example.root.notes.model.Notebook;
 import com.example.root.notes.util.Attributes;
 import com.example.root.notes.functionality.DottedLineEditText;
 import com.example.root.notes.model.Note;
 import com.example.root.notes.R;
-import com.example.root.notes.util.Utilities;
 
-import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 
-public class NoteEditorDisplay extends AppCompatActivity
+public class NoteEditorDisplay extends AppCompatActivity implements NoteEditorDisplayView
 {
     private boolean                 mEdit;
     private boolean                 mNewNote;
@@ -58,8 +61,21 @@ public class NoteEditorDisplay extends AppCompatActivity
     @BindView(R.id.note_et_content)
     DottedLineEditText      mDLEditTextContent;
 
-    InputMethodManager inputManager;
-    android.support.v7.app.ActionBar actionBar;
+    InputMethodManager                  inputManager;
+
+    android.support.v7.app.ActionBar    actionBar;
+
+    NoteEditorDisplayPresenter          mPresenter;
+    NoteEditorDialogAdapter             dialogAdapter;
+
+    AlertDialog                         alertDialog;
+
+    RecyclerView                        dialogNotebooksList;
+
+    TextView                            currentNotebook;
+    TextView                            newLocationNotebook;
+
+    int                                 newLocationNotebookId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -67,6 +83,13 @@ public class NoteEditorDisplay extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_editor);
         ButterKnife.bind(this);
+
+        AppDatabase appDatabase = AppDatabase.getDatabase(this);
+        NoteEditorDisplayRepository repository = new NoteEditorDisplayRepository(appDatabase);
+
+        mPresenter = new NoteEditorDisplayPresenter(this, repository, AndroidSchedulers.mainThread());
+
+        newLocationNotebookId = -10;
 
         inputManager = (InputMethodManager)   getSystemService(Context.INPUT_METHOD_SERVICE);
 
@@ -95,6 +118,8 @@ public class NoteEditorDisplay extends AppCompatActivity
             }
         });
 
+        setupNotebooksDialog();
+
         mEdit = false;
         mNoteAltered = false;
 
@@ -113,6 +138,7 @@ public class NoteEditorDisplay extends AppCompatActivity
 
             setTitle("Edit note");
 
+            Log.d("NOTE_ACTIVITY", "Received note default notebook: " + mReceivedNote.getNotebookId());
         }
         else
         {
@@ -240,6 +266,13 @@ public class NoteEditorDisplay extends AppCompatActivity
 
                     inputManager.hideSoftInputFromWindow(mEditTextTitle.getWindowToken(), 0);
                 }
+
+                break;
+            }
+            case R.id.action_notes_move_note:
+            {
+                mPresenter.getNotebookById(mReceivedNote.getNotebookId());
+                mPresenter.loadNotebooksInDialog();
 
                 break;
             }
@@ -387,5 +420,104 @@ public class NoteEditorDisplay extends AppCompatActivity
         }
 
         super.onBackPressed();
+    }
+
+    @Override
+    public void displayNotebooks(List<Notebook> notebooksList)
+    {
+        if(dialogAdapter.getItemCount() != 0)
+        {
+            dialogAdapter.clear();
+        }
+
+        dialogAdapter.addItems(notebooksList);
+
+        alertDialog.show();
+
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+    }
+
+    @Override
+    public void displayCurrentNotebook(Notebook notebook)
+    {
+        currentNotebook.setText(notebook.getName());
+    }
+
+    private void setupNotebooksDialog()
+    {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(NoteEditorDisplay.this);
+
+        View view = LayoutInflater.from(this).inflate(R.layout.activity_note_editor_notebooks_dialog, null);
+
+        //alertDialogBuilder.setView(view);
+        alertDialogBuilder.setCancelable(true);
+        alertDialogBuilder.setTitle("Move notebook");
+
+        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i)
+            {
+                mReceivedNote.setNotebookId(newLocationNotebookId);
+                mNoteAltered = true;
+
+                Log.d("DIALOG_NOTEBOOKS_LIST", "Note to be saved with notebook id: " + mReceivedNote.getNotebookId());
+            }
+        });
+
+        alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i)
+            {
+                dialogInterface.cancel();
+            }
+        });
+
+        alertDialog = alertDialogBuilder.create();
+        alertDialog.setView(view, 10, 10, 10, 10);
+        alertDialog.getWindow().getDecorView().setBackgroundColor(Color.argb(255, 224, 224, 224));
+
+        dialogNotebooksList = view.findViewById(R.id.note_editor_list);
+
+        currentNotebook = view.findViewById(R.id.note_editor_notebook_view_current);
+        newLocationNotebook = view.findViewById(R.id.note_editor_notebook_view_new);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+
+        dialogNotebooksList.setLayoutManager(layoutManager);
+        dialogNotebooksList.setHasFixedSize(true);
+        dialogNotebooksList.setItemAnimator(new DefaultItemAnimator());
+
+        dialogNotebooksList.addOnItemTouchListener(new RecyclerItemListener(getApplicationContext(), dialogNotebooksList,
+                new RecyclerItemListener.RecyclerTouchListener()
+                {
+                    @Override
+                    public void onClickItem(View v, int position)
+                    {
+                        Notebook notebook = dialogAdapter.getItemAtPosition(position);
+
+                        newLocationNotebook.setText(notebook.getName());
+
+                        newLocationNotebookId = notebook.getId();
+
+                        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+
+                        Log.d("DIALOG_NOTEBOOKS_LIST", "Clicked notebook: " + notebook.getName() + " | ID: " + notebook.getId());
+                        Log.d("DIALOG_NOTEBOOKS_LIST", "New location notebook id: " + newLocationNotebookId);
+                    }
+
+                    @Override
+                    public void onLongClickItem(View v, int position)
+                    {
+                        Toast.makeText(getApplicationContext(), "LONG", Toast.LENGTH_SHORT).show();
+                    }
+                })
+        );
+
+        dialogAdapter = new NoteEditorDialogAdapter(this, new ArrayList<>());
+
+        dialogNotebooksList.setAdapter(dialogAdapter);
     }
 }

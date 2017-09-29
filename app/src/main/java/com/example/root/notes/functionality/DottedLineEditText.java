@@ -53,10 +53,9 @@ public class DottedLineEditText extends AppCompatEditText{
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-
+    protected void onDraw(Canvas canvas)
+    {
         canvas.drawLine(100, 100, 200, 100, dottedLinePaint);
-
 
         super.onDraw(canvas);
     }

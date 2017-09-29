@@ -15,6 +15,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -33,6 +34,7 @@ import com.example.root.notes.NoteRepository;
 import com.example.root.notes.NotesDisplayPresenter;
 import com.example.root.notes.NotesDisplayView;
 import com.example.root.notes.PresenterViewModel;
+import com.example.root.notes.RecyclerItemListener;
 import com.example.root.notes.database.AppDatabase;
 import com.example.root.notes.database.DatabaseCreator;
 import com.example.root.notes.model.Notebook;
@@ -315,7 +317,7 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                 {
                     Log.d("NOTES_ACTIVITY_RESULT", "Overwrite note result");
 
-                    mReceivedNoteFromEditor.setNotebookId(mSelectedNotebookID);
+                    //mReceivedNoteFromEditor.setNotebookId(mSelectedNotebookID);
 
                     mPresenter.updateNote(mReceivedNoteFromEditor);
 
@@ -418,66 +420,62 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
             mNotesViewAdapter = new NotesAdapter(getApplicationContext(), notesList);
         }
 
-        mNotesView.setAdapter(mNotesViewAdapter);
+        mNotesView.setHasFixedSize(true);
+        mNotesView.setItemAnimator(new DefaultItemAnimator());
         mNotesView.setLayoutManager(new LinearLayoutManager(this));
+        mNotesView.setAdapter(mNotesViewAdapter);
 
-        mNotesViewAdapter.setClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                //Currently clicked item
-                int item_position = mNotesView.indexOfChild(v);
-
-                if(!mSelectMode)
+        mNotesView.addOnItemTouchListener(new RecyclerItemListener(getApplicationContext(), mNotesView,
+                new RecyclerItemListener.RecyclerTouchListener()
                 {
-                    mClickedNotePosition = item_position;
-
-                    Note note = mNotesViewAdapter.getItemAtPosition(item_position);
-
-                    Log.d("NOTE ON CLICK", note.getTitle());
-                    Log.d("NOTE ON CLICK", Integer.toString(note.getNotebookId()));
-
-                    openNote(note);
-                }
-                else
-                {
-                    Log.d("Select mode click", Integer.toString(item_position));
-                    if(!mSelectedItems.contains(item_position))
+                    @Override
+                    public void onClickItem(View v, int position)
                     {
-                        Log.d("Toggle item", "Item at position " + Integer.toString(item_position) + " selected");
-                        mSelectedItems.add(item_position);
+                        if(!mSelectMode)
+                        {
+                            mClickedNotePosition = position;
+
+                            Note note = mNotesViewAdapter.getItemAtPosition(position);
+
+                            Log.d("NOTE ON CLICK", note.getTitle());
+                            Log.d("NOTE ON CLICK", Integer.toString(note.getNotebookId()));
+
+                            openNote(note);
+                        }
+                        else
+                        {
+                            Log.d("Select mode click", Integer.toString(position));
+                            if(!mSelectedItems.contains(position))
+                            {
+                                Log.d("Toggle item", "Item at position " + Integer.toString(position) + " selected");
+                                mSelectedItems.add(position);
+                            }
+                            else
+                            {
+                                Log.d("Toggle item", "Item at position " + Integer.toString(position) + " deselected");
+                                mSelectedItems.remove(mSelectedItems.indexOf(position));
+                            }
+                            mNotesViewAdapter.notifyDataSetChanged();
+                        }
                     }
-                    else
+
+                    @Override
+                    public void onLongClickItem(View v, int position)
                     {
-                        Log.d("Toggle item", "Item at position " + Integer.toString(item_position) + " deselected");
-                        mSelectedItems.remove(mSelectedItems.indexOf(item_position));
+                        //Currently clicked item
+                        int item_position = mNotesView.indexOfChild(v);
+
+                        if(!mSelectMode)
+                        {
+                            Log.d("Select mode long click", Integer.toString(item_position));
+                            mSelectedItems.add(item_position);
+                            mSelectMode = true;
+                            invalidateOptionsMenu();
+                            mNotesViewAdapter.notifyDataSetChanged();
+                        }
                     }
-                    mNotesViewAdapter.notifyDataSetChanged();
-                }
-            }
-        });
-
-        mNotesViewAdapter.setLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View v)
-            {
-                //Currently clicked item
-                int item_position = mNotesView.indexOfChild(v);
-
-                if(!mSelectMode)
-                {
-                    Log.d("Select mode long click", Integer.toString(item_position));
-                    mSelectedItems.add(item_position);
-                    mSelectMode = true;
-                    invalidateOptionsMenu();
-                    mNotesViewAdapter.notifyDataSetChanged();
-                }
-
-                return false;
-            }
-        });
+                })
+        );
     }
 
     public void initializeDatabase()

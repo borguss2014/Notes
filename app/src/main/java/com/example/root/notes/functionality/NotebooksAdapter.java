@@ -75,27 +75,6 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
-
-        public TextView getTitle() {
-            return title;
-        }
-
-        public LinearLayout getTitleContentLayout() {
-            return titleContentLayout;
-        }
-
-        public LinearLayout getPhotoLayout() {
-            return photoLayout;
-        }
-
-        public LinearLayout getParentLayout() {
-            return parentLayout;
-        }
-
-        public Button getOverflowButton()
-        {
-            return notebookOverflowOptions;
-        }
     }
 
     @Override
@@ -131,10 +110,9 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
     @Override
     public void onBindViewHolder(NotebooksAdapter.ViewHolder holder, int position)
     {
-
         Notebook notebook = mDataSet.get(position);
 
-        holder.getTitle().setText(notebook.getName());
+        holder.title.setText(notebook.getName());
 
         holder.notebookOverflowOptions.setOnClickListener(new View.OnClickListener()
         {
@@ -227,7 +205,7 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
     public void addItem(Notebook notebook)
     {
         mDataSet.add(notebook);
-        notifyDataSetChanged();
+        notifyItemInserted(mDataSet.indexOf(notebook));
     }
 
     public void clear()
@@ -242,6 +220,7 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
 
         final EditText input = new EditText(mContext);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText(notebook.getName());
 
         if(mode == Attributes.NotebookOverflowAction.MODE_EDIT)
         {
