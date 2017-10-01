@@ -222,8 +222,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
             holder.titleContentLayout.setBackgroundColor(Color.WHITE);
             holder.photoLayout.setBackgroundColor(Color.WHITE);
         }
-
-        holder.mItemView.setTag(note);
     }
 
     @Override

@@ -23,6 +23,8 @@ public interface NoteRepository
     Single<Integer> updateNote(Note note);
     Single<Integer> removeNote(Note note);
 
+    Single<Integer> removeNotesWithIds(List<Integer> noteIds);
+
     Single<Long> insertDefaultNotebook(Notebook notebook);
     Single<Notebook> retrieveNotebookByName(String name);
 

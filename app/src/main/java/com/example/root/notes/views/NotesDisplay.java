@@ -1,9 +1,11 @@
 package com.example.root.notes.views;
 
+import android.app.AlertDialog;
 import android.arch.lifecycle.LifecycleRegistry;
 import android.arch.lifecycle.LifecycleRegistryOwner;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -19,6 +21,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -245,29 +248,36 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                 return true;
             case R.id.action_main_select_delete:
 
-                Collections.sort(mSelectedItems);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-                for(int pos = 0; pos< mSelectedItems.size(); pos++)
+                TextView text = new TextView(getApplicationContext());
+                text.setText("Are you sure about deleting these notes?");
+                text.setGravity(Gravity.CENTER);
+
+                builder.setView(text);
+                builder.setTitle("Confirm notes deletion");
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
                 {
-                    Note note = mNotesViewAdapter.getItemAtPosition(mSelectedItems.get(pos));
-
-                    //String notePath = notesDirPath.concat(File.separator.concat(note.getFileName()));
-
-                    //Utilities.deleteFile(notePath);
-
-                    //mReceivedNotebook.getNotes().getValue().remove(mReceivedNotebook.getNotes().getValue().indexOf(note));
-
-                    //new DeleteNoteDBTask(mAppDatabase.noteModel(), null).execute(note);
-
-                    for(int decrement = pos+1; decrement< mSelectedItems.size(); decrement++)
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
                     {
-                        mSelectedItems.set(decrement, mSelectedItems.get(decrement)-1);
+                        deleteSelectedNotes();
                     }
-                }
-                mSelectedItems.clear();
-                mSelectMode = false;
-                invalidateOptionsMenu();
-                mNotesViewAdapter.notifyDataSetChanged();
+                });
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        dialogInterface.cancel();
+                    }
+                });
+
+                builder.setCancelable(true);
+
+                builder.show();
+
                 return true;
 
             default:
@@ -469,13 +479,10 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                     @Override
                     public void onLongClickItem(View v, int position)
                     {
-                        //Currently clicked item
-                        int item_position = mNotesView.indexOfChild(v);
-
                         if(!mSelectMode)
                         {
-                            Log.d("Select mode long click", Integer.toString(item_position));
-                            mSelectedItems.add(item_position);
+                            Log.d("Select mode long click", Integer.toString(position));
+                            mSelectedItems.add(position);
                             mSelectMode = true;
                             invalidateOptionsMenu();
                             mNotesViewAdapter.notifyDataSetChanged();
@@ -667,6 +674,59 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                         mPresenter.deleteNote(note);
                     }
                 }).show();
+    }
+
+    @Override
+    public void displayNotesDeleted()
+    {
+        for(int notePos = 0; notePos< mSelectedItems.size(); notePos++)
+        {
+            int position = mSelectedItems.get(notePos);
+
+            mNotesViewAdapter.deleteItemAtPosition(position);
+
+            for(int decrementPos = notePos + 1; decrementPos < mSelectedItems.size(); decrementPos++)
+            {
+                mSelectedItems.set(decrementPos, mSelectedItems.get(decrementPos)-1);
+            }
+        }
+
+        mSelectedItems.clear();
+        mSelectMode = false;
+        invalidateOptionsMenu();
+        mNotesViewAdapter.notifyDataSetChanged();
+
+        Snackbar.make(mNotesView, "Notes successfully deleted", Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void displayNotesNotDeleted()
+    {
+        Snackbar.make(mNotesView, "Couldn't delete notes", Snackbar.LENGTH_LONG)
+                .setAction("Retry", new View.OnClickListener()
+                {
+                    @Override
+                    public void onClick(View view)
+                    {
+                        deleteSelectedNotes();
+                    }
+                }).show();
+    }
+
+    private void deleteSelectedNotes()
+    {
+        Collections.sort(mSelectedItems);
+
+        List<Integer> noteIds = new ArrayList<>();
+
+        for(int i=0; i < mSelectedItems.size(); i++)
+        {
+            int position = mSelectedItems.get(i);
+
+            noteIds.add(mNotesViewAdapter.getItemAtPosition(position).getId());
+        }
+
+        mPresenter.deleteNotesWithIds(noteIds);
     }
 
     private void addDrawerItems()

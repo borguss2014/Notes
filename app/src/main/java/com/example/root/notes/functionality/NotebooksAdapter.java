@@ -163,8 +163,10 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
 
     public void addItems(List<Notebook> newDataSet)
     {
+        int lastPos = mDataSet.size();
+
         mDataSet.addAll(newDataSet);
-        notifyDataSetChanged();
+        notifyItemRangeInserted(lastPos, newDataSet.size());
     }
 
     public void addItem(Notebook notebook)
@@ -175,7 +177,8 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
 
     public void clear()
     {
+        int size = mDataSet.size();
         mDataSet.clear();
-        notifyDataSetChanged();
+        notifyItemRangeRemoved(0, size);
     }
 }

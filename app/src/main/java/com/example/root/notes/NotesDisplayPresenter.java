@@ -250,6 +250,36 @@ public class NotesDisplayPresenter implements NotePresenter
     }
 
     @Override
+    public void deleteNotesWithIds(List<Integer> noteIds)
+    {
+        compositeDisposable.add(repository.removeNotesWithIds(noteIds)
+                .subscribeOn(Schedulers.io())
+                .observeOn(mainScheduler)
+                .subscribeWith(new DisposableSingleObserver<Integer>()
+                {
+                    @Override
+                    public void onSuccess(Integer integer)
+                    {
+                        if(integer == 0 || integer == -1)
+                        {
+                            view.displayNotesNotDeleted();
+                        }
+                        else
+                        {
+                            view.displayNotesDeleted();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e)
+                    {
+                        e.printStackTrace();
+                    }
+                })
+        );
+    }
+
+    @Override
     public void addDefaultNotebook(Notebook notebook)
     {
         compositeDisposable.add(repository.insertDefaultNotebook(notebook)

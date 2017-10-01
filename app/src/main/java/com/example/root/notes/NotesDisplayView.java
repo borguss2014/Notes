@@ -23,5 +23,8 @@ public interface NotesDisplayView extends BaseView
     void displayNoteDeleted(Note note);
     void displayNoteNotDeleted(Note note);
 
+    void displayNotesDeleted();
+    void displayNotesNotDeleted();
+
     void saveDefaultNotebook(Notebook notebook);
 }

@@ -121,6 +121,19 @@ public class NoteDisplayRepository implements NoteRepository
     }
 
     @Override
+    public Single<Integer> removeNotesWithIds(List<Integer> noteIds)
+    {
+        return Single.fromCallable(new Callable<Integer>()
+        {
+            @Override
+            public Integer call() throws Exception
+            {
+                return mAppDatabase.noteModel().deleteNotesWithIds(noteIds);
+            }
+        });
+    }
+
+    @Override
     public Single<Long> insertDefaultNotebook(Notebook notebook)
     {
         return Single.fromCallable(new Callable<Long>()
