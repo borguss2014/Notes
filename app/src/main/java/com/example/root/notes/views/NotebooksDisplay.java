@@ -3,6 +3,7 @@ package com.example.root.notes.views;
 import android.arch.lifecycle.LifecycleRegistry;
 import android.arch.lifecycle.LifecycleRegistryOwner;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -17,10 +18,12 @@ import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupMenu;
@@ -54,11 +57,14 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
     private final LifecycleRegistry mRegistry = new LifecycleRegistry(this);
 
-    private NotebooksAdapter                mNotebooksViewAdapter;
-    private Notebook                        mLastInsertedNotebook;
+    private NotebooksAdapter                                mNotebooksViewAdapter;
+    private Notebook                                        mLastInsertedNotebook;
 
-    private PresenterViewModel<NotebooksDisplayPresenter> mPresenterViewModel;
-    private NotebooksDisplayPresenter mPresenter;
+    private InputMethodManager                              inputManager;
+
+    private NotebooksDisplayPresenter                       mPresenter;
+
+    private PresenterViewModel<NotebooksDisplayPresenter>   mPresenterViewModel;
 
     @BindView(R.id.floating_action_add_notebook)
     FloatingActionButton floatingActionButton;
@@ -82,6 +88,8 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
         setTitle("Notebooks");
 
         getWindow().getDecorView().setBackgroundColor(Color.argb(255,224,224,224));
+
+        inputManager = (InputMethodManager)   getSystemService(Context.INPUT_METHOD_SERVICE);
 
         mPresenterViewModel = ViewModelProviders.of(this).get(PresenterViewModel.class);
 
@@ -281,52 +289,6 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void createNotebookDialog()
-    {
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-
-        alertDialogBuilder.setView(input);
-        alertDialogBuilder.setTitle("Notebook name");
-
-        alertDialogBuilder.setPositiveButton("Add", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                String dialogNotebookName = input.getText().toString();
-
-                if(mNotebooksViewAdapter.contains(dialogNotebookName))
-                {
-                    Toast.makeText(getApplicationContext(), "Notebook already exists. Choose another name!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                if(dialogNotebookName.equals(""))
-                {
-                    Toast.makeText(getApplicationContext(), "Notebook name cannot be empty!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                mLastInsertedNotebook = new Notebook(dialogNotebookName);
-
-                mPresenter.addNotebook(mLastInsertedNotebook);
-            }
-        });
-        alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                dialog.cancel();
-            }
-        });
-
-        alertDialogBuilder.show();
-    }
-
     private void openNotebook(Notebook notebook)
     {
         Intent resultIntent = new Intent();
@@ -357,7 +319,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
             {
                 Notebook notebook = mNotebooksViewAdapter.getItemAtPosition(position);
 
-                if(tag == NotebooksAdapter.Constants.NotebookOverflowOptions)
+                if(tag.equals(NotebooksAdapter.Constants.NotebookOverflowOptions))
                 {
                     PopupMenu popupMenu = new PopupMenu(getApplicationContext(), view);
                     popupMenu.getMenuInflater().inflate(R.menu.notebooks_overflow_menu, popupMenu.getMenu());
@@ -564,7 +526,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
     private void displayDialog(String dialogTitle, String okButton, String cancelButton, int mode, Notebook notebook)
     {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(getApplicationContext(), R.style.myDialog));
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.myDialog));
 
         final EditText input = new EditText(getApplicationContext());
         input.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -578,6 +540,7 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
         {
             final TextView view = new TextView(getApplicationContext());
             view.setText("Are you sure you want to delete this notebook?");
+            view.setGravity(Gravity.CENTER);
 
             alertDialogBuilder.setView(view);
         }
@@ -610,6 +573,8 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
                     //mLastInsertedNotebook = new Notebook(dialogNotebookName);
 
                     mPresenter.updateNotebook(notebook);
+
+                    inputManager.hideSoftInputFromWindow(input.getWindowToken(), 0);
                 }
                 else if(mode == Attributes.NotebookOverflowAction.MODE_DELETE)
                 {
@@ -636,6 +601,91 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
             }
         });
 
+        alertDialogBuilder.setCancelable(true);
+
+        alertDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener()
+        {
+            @Override
+            public void onCancel(DialogInterface dialogInterface)
+            {
+                if(mode == Attributes.NotebookOverflowAction.MODE_EDIT)
+                {
+                    inputManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+                }
+            }
+        });
+
         alertDialogBuilder.show();
+
+        if(mode == Attributes.NotebookOverflowAction.MODE_EDIT)
+        {
+            input.requestFocus();
+            input.setSelection(input.getText().length());
+
+            inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        }
+    }
+
+    private void createNotebookDialog()
+    {
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        alertDialogBuilder.setView(input);
+        alertDialogBuilder.setTitle("Notebook name");
+
+        alertDialogBuilder.setPositiveButton("Add", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                String dialogNotebookName = input.getText().toString();
+
+                if(mNotebooksViewAdapter.contains(dialogNotebookName))
+                {
+                    Toast.makeText(getApplicationContext(), "Notebook already exists. Choose another name!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                if(dialogNotebookName.equals(""))
+                {
+                    Toast.makeText(getApplicationContext(), "Notebook name cannot be empty!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                mLastInsertedNotebook = new Notebook(dialogNotebookName);
+
+                mPresenter.addNotebook(mLastInsertedNotebook);
+
+                inputManager.hideSoftInputFromWindow(input.getWindowToken(), 0);
+            }
+        });
+        alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                dialog.cancel();
+            }
+        });
+
+        alertDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener()
+        {
+            @Override
+            public void onCancel(DialogInterface dialogInterface)
+            {
+                inputManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+            }
+        });
+
+        alertDialogBuilder.setCancelable(true);
+
+        alertDialogBuilder.show();
+
+        input.requestFocus();
+
+        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
     }
 }

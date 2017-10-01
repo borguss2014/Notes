@@ -5,6 +5,7 @@ import android.arch.lifecycle.LifecycleRegistry;
 import android.arch.lifecycle.LifecycleRegistryOwner;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -26,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -256,7 +258,7 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
                 builder.setView(text);
                 builder.setTitle("Confirm notes deletion");
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                builder.setPositiveButton("Accept", new DialogInterface.OnClickListener()
                 {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i)
@@ -697,6 +699,11 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
         mNotesViewAdapter.notifyDataSetChanged();
 
         Snackbar.make(mNotesView, "Notes successfully deleted", Snackbar.LENGTH_LONG).show();
+
+        if(mNotesViewAdapter.getItemCount() == 0)
+        {
+            setViewState(Attributes.ViewState.EMPTY);
+        }
     }
 
     @Override
@@ -771,7 +778,7 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
             {
                 super.onDrawerOpened(drawerView);
 
-                getSupportActionBar().setTitle("Navigation!");
+                //getSupportActionBar().setTitle("Navigation!");
                 invalidateOptionsMenu();
             }
 
@@ -780,7 +787,7 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
             {
                 super.onDrawerClosed(drawerView);
 
-                getSupportActionBar().setTitle("Notes");
+                //getSupportActionBar().setTitle("Notes");
                 invalidateOptionsMenu();
             }
         };

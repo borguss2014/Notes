@@ -153,6 +153,9 @@ public class NoteEditorDisplay extends AppCompatActivity implements NoteEditorDi
             floatingActionButton.hide();
 
             setTitle("New note");
+
+            inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+            mEditTextTitle.requestFocus();
         }
 
         mEditTextTitle.addTextChangedListener(new TextWatcher()
@@ -293,9 +296,6 @@ public class NoteEditorDisplay extends AppCompatActivity implements NoteEditorDi
 
                     floatingActionButton.show();
 
-                    inputManager.hideSoftInputFromWindow(mDLEditTextContent.getWindowToken(), 0);
-
-
                     enableEditText(mEditTextTitle, mEdit);
                     enableEditText(mDLEditTextContent, mEdit);
                 }
@@ -309,6 +309,15 @@ public class NoteEditorDisplay extends AppCompatActivity implements NoteEditorDi
                     {
                         finish();
                     }
+                }
+
+                if(mEditTextTitle.isFocused())
+                {
+                    inputManager.hideSoftInputFromWindow(mEditTextTitle.getWindowToken(), 0);
+                }
+                else if(mDLEditTextContent.isFocused())
+                {
+                    inputManager.hideSoftInputFromWindow(mDLEditTextContent.getWindowToken(), 0);
                 }
 
                 break;
@@ -402,6 +411,15 @@ public class NoteEditorDisplay extends AppCompatActivity implements NoteEditorDi
         resultIntent.putExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY, mReceivedNote);
 
         setResult(resultCode, resultIntent);
+
+        if(mEditTextTitle.isFocused())
+        {
+            inputManager.hideSoftInputFromWindow(mEditTextTitle.getWindowToken(), 0);
+        }
+        else if(mDLEditTextContent.isFocused())
+        {
+            inputManager.hideSoftInputFromWindow(mDLEditTextContent.getWindowToken(), 0);
+        }
 
         finish();
     }
