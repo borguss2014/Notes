@@ -299,13 +299,14 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
 
         if(requestCode == Attributes.ActivityMessageType.NOTE_EDITOR_ACTIVITY && data != null)
         {
-            mReceivedNoteFromEditor = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY);
 
             switch(resultCode)
             {
                 case Attributes.ActivityResultMessageType.NEW_NOTE_ACTIVITY_RESULT:
                 {
                     Log.d("NOTES_ACTIVITY_RESULT", "New note result");
+
+                    mReceivedNoteFromEditor = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY);
 
                     mReceivedNoteFromEditor.setNotebookId(mSelectedNotebookID);
 
@@ -317,6 +318,8 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                 {
                     Log.d("NOTES_ACTIVITY_RESULT", "Overwrite note result");
 
+                    mReceivedNoteFromEditor = (Note) data.getSerializableExtra(Attributes.ActivityMessageType.NOTE_FOR_ACTIVITY);
+                    Log.d("NOTES_ACTIVITY_RESULT", "Overwrite note id: " + mReceivedNoteFromEditor.getId());
                     //mReceivedNoteFromEditor.setNotebookId(mSelectedNotebookID);
 
                     mPresenter.updateNote(mReceivedNoteFromEditor);
@@ -336,6 +339,10 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
                     break;
                 }
             }
+
+            Log.d("RECEIVED NOTE", "Title: " + mReceivedNoteFromEditor.getTitle());
+            Log.d("RECEIVED NOTE", "ID: " + mReceivedNoteFromEditor.getId());
+            Log.d("RECEIVED NOTE", "Notebook ID: " + mReceivedNoteFromEditor.getNotebookId());
         }
         else if(requestCode == Attributes.ActivityMessageType.NOTEBOOKS_LIST_ACTIVITY && data != null)
         {
@@ -589,9 +596,17 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     @Override
     public void displayNoteUpdated(Note note)
     {
-        Note toBeUpdatedNote = mNotesViewAdapter.getItemAtPosition(mClickedNotePosition);
+        Log.d("UPDATED_NOTE", "Note title: " + note.getTitle());
+        Log.d("UPDATED_NOTE", "Note id: " + note.getId());
+        Log.d("UPDATED_NOTE", "Note notebook id: " + note.getNotebookId());
 
-        mNotesViewAdapter.deleteItem(toBeUpdatedNote);
+//        Note toBeUpdatedNote = mNotesViewAdapter.getItemAtPosition(mClickedNotePosition);
+//
+//        mNotesViewAdapter.deleteItem(toBeUpdatedNote);
+//        mNotesViewAdapter.addItem(note);
+//        mNotesViewAdapter.notifyDataSetChanged();
+
+        mNotesViewAdapter.deleteItemAtPosition(mClickedNotePosition);
         mNotesViewAdapter.addItem(note);
 
         Snackbar.make(mNotesView, "Note updated", Snackbar.LENGTH_LONG)
@@ -622,9 +637,7 @@ public class NotesDisplay extends AppCompatActivity implements LifecycleRegistry
     @Override
     public void displayNoteDeleted(Note note)
     {
-        Note toBeDeletedNote = mNotesViewAdapter.getItemAtPosition(mClickedNotePosition);
-
-        mNotesViewAdapter.deleteItem(toBeDeletedNote);
+        mNotesViewAdapter.deleteItemAtPosition(mClickedNotePosition);
 
         Snackbar.make(mNotesView, "Note deleted", Snackbar.LENGTH_LONG)
                 .setAction("Revert", new View.OnClickListener()

@@ -13,6 +13,7 @@ public interface NotePresenter extends BasePresenter
     void getNotesForNotebook(int notebookId);
 
     void getAllNotes();
+    void getNoteById(int noteId);
 
     void addNote(Note note);
     void updateNote(Note note);

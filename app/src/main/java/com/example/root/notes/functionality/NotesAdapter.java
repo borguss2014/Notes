@@ -244,8 +244,10 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
 
     public void addItems(List<Note> newDataset)
     {
-        mDataSet = newDataset;
-        notifyDataSetChanged();
+        int oldSize = mDataSet.size();
+
+        mDataSet.addAll(newDataset);
+        notifyItemRangeInserted(oldSize, newDataset.size());
     }
 
     public void addItem(Note note)
@@ -261,13 +263,24 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder>
 
     public void deleteItem(Note note)
     {
+        int position = mDataSet.indexOf(note);
+
         mDataSet.remove(note);
-        notifyDataSetChanged();
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, mDataSet.size());
+    }
+
+    public void deleteItemAtPosition(int position)
+    {
+        mDataSet.remove(position);
+        notifyItemRemoved(position);
     }
 
     public void clear()
     {
+        int count = mDataSet.size();
+
         mDataSet.clear();
-        notifyDataSetChanged();
+        notifyItemRangeRemoved(0, count);
     }
 }

@@ -69,6 +69,19 @@ public class NoteDisplayRepository implements NoteRepository
     }
 
     @Override
+    public Single<Note> retrieveNoteById(int noteId)
+    {
+        return Single.fromCallable(new Callable<Note>()
+        {
+            @Override
+            public Note call() throws Exception
+            {
+                return mAppDatabase.noteModel().getNote(noteId);
+            }
+        });
+    }
+
+    @Override
     public Single<Long> insertNote(Note note)
     {
         return Single.fromCallable(new Callable<Long>()

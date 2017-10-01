@@ -84,7 +84,7 @@ public class NoteDaoTest
         mNoteDao.addNote(note1);
         mNoteDao.addNote(note2);
 
-        List<Note> notesList = getValue(mNoteDao.getNotesForNotebook(notebook_id));
+        List<Note> notesList = mNoteDao.getNotesForNotebook(notebook_id);
 
         assertNotEquals(notesList, null);
         assertNotEquals(notesList.size(), 0);
@@ -125,7 +125,7 @@ public class NoteDaoTest
             mNoteDao.addNote(note);
         }
 
-        List<Note> notesList = getValue(mNoteDao.getAllNotes());
+        List<Note> notesList = mNoteDao.getAllNotes();
 
         assertNotEquals(notesList, null);
         assertNotEquals(notesList.size(), 0);
@@ -133,7 +133,7 @@ public class NoteDaoTest
         int numberOfDeletedNotes = mNoteDao.deleteAllNotes();
         assertThat(numberOfDeletedNotes, equalTo(numberOfNotes));
 
-        notesList = getValue(mNoteDao.getAllNotes());
+        notesList = mNoteDao.getAllNotes();
 
         assertNotEquals(notesList, null);
         assertEquals(notesList.size(), 0);

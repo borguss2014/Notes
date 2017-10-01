@@ -17,6 +17,7 @@ public interface NoteRepository
     Single<List<Note>> retrieveNotesForNotebook(int notebookId);
 
     Single<List<Note>> retrieveAllNotes();
+    Single<Note> retrieveNoteById(int noteId);
 
     Single<Long> insertNote(Note note);
     Single<Integer> updateNote(Note note);

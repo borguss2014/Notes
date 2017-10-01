@@ -136,6 +136,28 @@ public class NotesDisplayPresenter implements NotePresenter
     }
 
     @Override
+    public void getNoteById(int noteId)
+    {
+        compositeDisposable.add(repository.retrieveNoteById(noteId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(mainScheduler).subscribeWith(new DisposableSingleObserver<Note>()
+                {
+                    @Override
+                    public void onSuccess(Note note)
+                    {
+                        view.displayNoteUpdated(note);
+                    }
+
+                    @Override
+                    public void onError(Throwable e)
+                    {
+                        e.printStackTrace();
+                    }
+                })
+        );
+    }
+
+    @Override
     public void addNote(Note note)
     {
         compositeDisposable.add(repository.insertNote(note)
@@ -152,6 +174,7 @@ public class NotesDisplayPresenter implements NotePresenter
                         }
                         else
                         {
+                            note.setId(queryResult.intValue());
                             view.displayNoteAdded(note);
                         }
                     }
@@ -183,6 +206,7 @@ public class NotesDisplayPresenter implements NotePresenter
                         else
                         {
                             view.displayNoteUpdated(note);
+                            //getNoteById(note.getId());
                         }
                     }
 

@@ -84,6 +84,8 @@ public class NoteEditorDisplay extends AppCompatActivity implements NoteEditorDi
         setContentView(R.layout.activity_note_editor);
         ButterKnife.bind(this);
 
+        mReceivedNote = (Note) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY);
+
         AppDatabase appDatabase = AppDatabase.getDatabase(this);
         NoteEditorDisplayRepository repository = new NoteEditorDisplayRepository(appDatabase);
 
@@ -122,8 +124,6 @@ public class NoteEditorDisplay extends AppCompatActivity implements NoteEditorDi
 
         mEdit = false;
         mNoteAltered = false;
-
-        mReceivedNote = (Note) getIntent().getSerializableExtra(Attributes.ActivityMessageType.NOTE_FROM_ACTIVITY);
 
         if(mReceivedNote != null && mReceivedNote.getNotebookId() != -1)
         {

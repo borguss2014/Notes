@@ -16,11 +16,14 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -344,12 +347,59 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
 
         if(notebooksList == null)
         {
-            mNotebooksViewAdapter = new NotebooksAdapter(NotebooksDisplay.this, new ArrayList<>(), mPresenter);
+            notebooksList = new ArrayList<>();
         }
-        else
+
+        mNotebooksViewAdapter = new NotebooksAdapter(NotebooksDisplay.this, notebooksList, mPresenter, new NotebooksAdapter.RecyclerViewClickInterface()
         {
-            mNotebooksViewAdapter = new NotebooksAdapter(NotebooksDisplay.this, notebooksList, mPresenter);
-        }
+            @Override
+            public void onItemClicked(int position, String tag, View view)
+            {
+                Notebook notebook = mNotebooksViewAdapter.getItemAtPosition(position);
+
+                if(tag == NotebooksAdapter.Constants.NotebookOverflowOptions)
+                {
+                    PopupMenu popupMenu = new PopupMenu(getApplicationContext(), view);
+                    popupMenu.getMenuInflater().inflate(R.menu.notebooks_overflow_menu, popupMenu.getMenu());
+
+                    if(mNotebooksViewAdapter.getItemCount() == 1 &&
+                            notebook.getId() == mPresenter.getDefaultNotebookID())
+                    {
+                        popupMenu.getMenu().findItem(R.id.notebook_overflow_delete).setEnabled(false);
+                    }
+
+                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener()
+                    {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item)
+                        {
+                            switch(item.getItemId())
+                            {
+                                case R.id.notebook_overflow_edit:
+                                {
+                                    displayDialog("Edit notebook", "Ok",
+                                            "Cancel", Attributes.NotebookOverflowAction.MODE_EDIT, notebook);
+                                    break;
+                                }
+                                case R.id.notebook_overflow_delete:
+                                {
+                                    displayDialog("Delete notebook", "Accept",
+                                            "Cancel", Attributes.NotebookOverflowAction.MODE_DELETE, notebook);
+                                    break;
+                                }
+                            }
+                            return false;
+                        }
+                    });
+
+                    popupMenu.show();
+                }
+                else
+                {
+                    openNotebook(notebook);
+                }
+            }
+        });
 
         mNotebooksView.setAdapter(mNotebooksViewAdapter);
         mNotebooksView.setLayoutManager(new LinearLayoutManager(this));
@@ -376,25 +426,6 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
                 super.onScrollStateChanged(recyclerView, newState);
             }
         });
-
-        mNotebooksView.addOnItemTouchListener(new RecyclerItemListener(getApplicationContext(), mNotebooksView,
-                new RecyclerItemListener.RecyclerTouchListener()
-                {
-                    @Override
-                    public void onClickItem(View v, int position)
-                    {
-                        Notebook notebook = mNotebooksViewAdapter.getItemAtPosition(position);
-
-                        openNotebook(notebook);
-                    }
-
-                    @Override
-                    public void onLongClickItem(View v, int position)
-                    {
-
-                    }
-                })
-        );
     }
 
     @Override
@@ -529,5 +560,82 @@ public class NotebooksDisplay extends AppCompatActivity implements LifecycleRegi
                 break;
             }
         }
+    }
+
+    private void displayDialog(String dialogTitle, String okButton, String cancelButton, int mode, Notebook notebook)
+    {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(getApplicationContext(), R.style.myDialog));
+
+        final EditText input = new EditText(getApplicationContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText(notebook.getName());
+
+        if(mode == Attributes.NotebookOverflowAction.MODE_EDIT)
+        {
+            alertDialogBuilder.setView(input);
+        }
+        else if(mode == Attributes.NotebookOverflowAction.MODE_DELETE)
+        {
+            final TextView view = new TextView(getApplicationContext());
+            view.setText("Are you sure you want to delete this notebook?");
+
+            alertDialogBuilder.setView(view);
+        }
+
+        alertDialogBuilder.setTitle(dialogTitle);
+
+        alertDialogBuilder.setPositiveButton(okButton, new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                if(mode == Attributes.NotebookOverflowAction.MODE_EDIT)
+                {
+                    String dialogNotebookName = input.getText().toString();
+
+                    if(mNotebooksViewAdapter.contains(dialogNotebookName))
+                    {
+                        Toast.makeText(getApplicationContext(), "Notebook already exists. Choose another name!", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    if(dialogNotebookName.equals(""))
+                    {
+                        Toast.makeText(getApplicationContext(), "Notebook name cannot be empty!", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    notebook.setName(dialogNotebookName);
+
+                    //mLastInsertedNotebook = new Notebook(dialogNotebookName);
+
+                    mPresenter.updateNotebook(notebook);
+                }
+                else if(mode == Attributes.NotebookOverflowAction.MODE_DELETE)
+                {
+                    int defaultNotebook = mPresenter.getDefaultNotebookID();
+
+                    if(notebook.getId() == defaultNotebook && mNotebooksViewAdapter.getItemCount() > 1)
+                    {
+                        int newDefaultNotebookID = mNotebooksViewAdapter.getItemAtPosition(1).getId();
+
+                        mPresenter.updateDefaultNotebookID(newDefaultNotebookID);
+
+                        Log.d("ADAPTER", "New default notebook id : " + Integer.toString(mPresenter.getDefaultNotebookID()));
+                    }
+                    mPresenter.deleteNotebook(notebook);
+                }
+            }
+        });
+        alertDialogBuilder.setNegativeButton(cancelButton, new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                dialog.cancel();
+            }
+        });
+
+        alertDialogBuilder.show();
     }
 }

@@ -24,6 +24,7 @@ import com.example.root.notes.model.Notebook;
 import com.example.root.notes.R;
 import com.example.root.notes.util.Attributes;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import butterknife.BindView;
@@ -36,24 +37,33 @@ import butterknife.ButterKnife;
 public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.ViewHolder>
 {
 
+    public static class Constants
+    {
+        public static String Holder = "Holder";
+        public static String NotebookOverflowOptions = "OverflowOptions";
+    }
+
     private Context mContext;
     private List<Notebook> mDataSet;
 
-    private View.OnClickListener mClickListener;
-    private View.OnLongClickListener mLongClickListener;
-
-    private PopupMenu popupMenu;
-
     private NotebooksDisplayPresenter mPresenter;
 
-    public NotebooksAdapter(@NonNull Context context, @NonNull List<Notebook> dataSet, NotebooksDisplayPresenter presenter)
+    private RecyclerViewClickInterface clickListener;
+
+    public interface RecyclerViewClickInterface
+    {
+        public void onItemClicked(int position, String tag, View view);
+    }
+
+    public NotebooksAdapter(@NonNull Context context, @NonNull List<Notebook> dataSet, NotebooksDisplayPresenter presenter, RecyclerViewClickInterface clickListener)
     {
         mContext = context;
         mDataSet = dataSet;
         mPresenter = presenter;
+        this.clickListener = clickListener;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener
     {
         @BindView(R.id.adapter_notebooks_title)
         TextView title;
@@ -70,10 +80,36 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
         @BindView(R.id.adapter_notebooks_options)
         Button notebookOverflowOptions;
 
-        public ViewHolder(View itemView)
+        private WeakReference<RecyclerViewClickInterface> clickListenerRef;
+
+        public ViewHolder(View itemView, RecyclerViewClickInterface listener)
         {
             super(itemView);
             ButterKnife.bind(this, itemView);
+
+            clickListenerRef = new WeakReference<>(listener);
+
+            itemView.setTag(Constants.Holder);
+            itemView.setOnClickListener(this);
+
+            notebookOverflowOptions.setTag(Constants.NotebookOverflowOptions);
+            notebookOverflowOptions.setOnClickListener(this);
+        }
+
+
+        @Override
+        public void onClick(View view)
+        {
+            if(clickListenerRef.get() != null)
+            {
+                clickListenerRef.get().onItemClicked(getAdapterPosition(), view.getTag().toString(), view);
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View view)
+        {
+            return false;
         }
     }
 
@@ -83,26 +119,7 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.notebooks_adapter_row, parent, false);
 
-        NotebooksAdapter.ViewHolder holder = new NotebooksAdapter.ViewHolder(view);
-
-        holder.itemView.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                mClickListener.onClick(view);
-            }
-        });
-
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View view)
-            {
-                mLongClickListener.onLongClick(view);
-                return false;
-            }
-        });
+        NotebooksAdapter.ViewHolder holder = new NotebooksAdapter.ViewHolder(view, clickListener);
 
         return holder;
     }
@@ -113,48 +130,6 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
         Notebook notebook = mDataSet.get(position);
 
         holder.title.setText(notebook.getName());
-
-        holder.notebookOverflowOptions.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                popupMenu = new PopupMenu(mContext, view);
-                popupMenu.getMenuInflater().inflate(R.menu.notebooks_overflow_menu, popupMenu.getMenu());
-
-                if(mDataSet.size() == 1 &&
-                        notebook.getId() == mPresenter.getDefaultNotebookID())
-                {
-                    popupMenu.getMenu().findItem(R.id.notebook_overflow_delete).setEnabled(false);
-                }
-
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener()
-                {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item)
-                    {
-                        switch(item.getItemId())
-                        {
-                            case R.id.notebook_overflow_edit:
-                            {
-                                displayDialog("Edit notebook", "Ok",
-                                        "Cancel", Attributes.NotebookOverflowAction.MODE_EDIT, notebook);
-                                break;
-                            }
-                            case R.id.notebook_overflow_delete:
-                            {
-                                displayDialog("Delete notebook", "Accept",
-                                        "Cancel", Attributes.NotebookOverflowAction.MODE_DELETE, notebook);
-                                break;
-                            }
-                        }
-                        return false;
-                    }
-                });
-
-                popupMenu.show();
-            }
-        });
     }
 
     @Override
@@ -171,16 +146,6 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
     public Notebook getItemAtPosition(int position)
     {
         return mDataSet.get(position);
-    }
-
-    public void setClickListener(View.OnClickListener callback)
-    {
-        mClickListener = callback;
-    }
-
-    public void setLongClickListener(View.OnLongClickListener callback)
-    {
-        mLongClickListener = callback;
     }
 
     public boolean contains(String notebookName)
@@ -212,82 +177,5 @@ public class NotebooksAdapter extends RecyclerView.Adapter<NotebooksAdapter.View
     {
         mDataSet.clear();
         notifyDataSetChanged();
-    }
-
-    private void displayDialog(String dialogTitle, String okButton, String cancelButton, int mode, Notebook notebook)
-    {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.myDialog));
-
-        final EditText input = new EditText(mContext);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setText(notebook.getName());
-
-        if(mode == Attributes.NotebookOverflowAction.MODE_EDIT)
-        {
-            alertDialogBuilder.setView(input);
-        }
-        else if(mode == Attributes.NotebookOverflowAction.MODE_DELETE)
-        {
-            final TextView view = new TextView(mContext);
-            view.setText("Are you sure you want to delete this notebook?");
-
-            alertDialogBuilder.setView(view);
-        }
-
-        alertDialogBuilder.setTitle(dialogTitle);
-
-        alertDialogBuilder.setPositiveButton(okButton, new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                if(mode == Attributes.NotebookOverflowAction.MODE_EDIT)
-                {
-                    String dialogNotebookName = input.getText().toString();
-
-                    if(contains(dialogNotebookName))
-                    {
-                        Toast.makeText(mContext, "Notebook already exists. Choose another name!", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-
-                    if(dialogNotebookName.equals(""))
-                    {
-                        Toast.makeText(mContext, "Notebook name cannot be empty!", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-
-                    notebook.setName(dialogNotebookName);
-
-                    //mLastInsertedNotebook = new Notebook(dialogNotebookName);
-
-                    mPresenter.updateNotebook(notebook);
-                }
-                else if(mode == Attributes.NotebookOverflowAction.MODE_DELETE)
-                {
-                    int defaultNotebook = mPresenter.getDefaultNotebookID();
-
-                    if(notebook.getId() == defaultNotebook && mDataSet.size() > 1)
-                    {
-                        int newDefaultNotebookID = mDataSet.get(1).getId();
-
-                        mPresenter.updateDefaultNotebookID(newDefaultNotebookID);
-
-                        Log.d("ADAPTER", "New default notebook id : " + Integer.toString(mPresenter.getDefaultNotebookID()));
-                    }
-                    mPresenter.deleteNotebook(notebook);
-                }
-            }
-        });
-        alertDialogBuilder.setNegativeButton(cancelButton, new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                dialog.cancel();
-            }
-        });
-
-        alertDialogBuilder.show();
     }
 }
